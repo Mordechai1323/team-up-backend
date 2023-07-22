@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/dist
 /.pnp
 .pnp.js
 .env
@@ -12,7 +13,7 @@
 /tests
 
 # production
-/dist
+
 
 # misc
 .DS_Store
