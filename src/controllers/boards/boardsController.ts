@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { BoardModel, validateProject, validateUserEmail } from '../../models/boardModel';
+import { BoardModel, validateBoard, validateUserEmail } from '../../models/boardModel';
 import { GroupModel } from '../../models/groupModel';
 import { TaskModel } from '../../models/taskModel';
 import { TeamModel } from '../../models/teamModel';
@@ -15,17 +15,17 @@ const getAllTeamBoards = async (req: Request, res: Response) => {
   try {
     const team = await TeamModel.findOne({ team_leader_id: req.tokenData._id });
     if (!team) return res.sendStatus(400);
-    const allTeamProjects = await Promise.all(
+    const allTeamBoards = await Promise.all(
       team.team_members.map(async (teamMemberId: string) => {
         const user = await UserModel.findOne({ _id: teamMemberId });
         if (user) {
-          const projects = await BoardModel.find({ user_id: user._id });
-          return { name: user.name, projects };
+          const boards = await BoardModel.find({ user_id: user._id });
+          return { name: user.name, boards };
         }
       })
     );
 
-    res.json(allTeamProjects);
+    res.json(allTeamBoards);
   } catch (err) {
     console.log(err);
     res.status(502).json({ err });
@@ -41,9 +41,9 @@ const getMyBoards = async (req: MyRequest, res: Response) => {
       $and: [{ name: searchExp }, { share_with: { $elemMatch: { user_id: req.tokenData._id } } }],
     });
 
-    // const allboards = await Promise.all(
-    //   boards.map(async (project) => {
-    //     if (project.user_id === req.tokenData._id || project.share_with.includes(req.tokenData._id)) return project;
+    // const allBoards = await Promise.all(
+    //   boards.map(async (board) => {
+    //     if (board.user_id === req.tokenData._id || board.share_with.includes(req.tokenData._id)) return board;
     //   })
     // );
 
@@ -55,28 +55,28 @@ const getMyBoards = async (req: MyRequest, res: Response) => {
 };
 
 const addBoard = async (req: Request, res: Response) => {
-  const validBody = validateProject(req.body);
+  const validBody = validateBoard(req.body);
   if (validBody.error) {
     return res.status(400).json(validBody.error.details);
   }
   try {
-    const project = new BoardModel(req.body);
+    const board = new BoardModel(req.body);
     const user = await UserModel.findOne({ _id: req.tokenData._id });
     if (!user) return res.sendStatus(400);
-    project.share_with.push({ user_id: user._id, name: user.name, email: user.email, isOwner: true });
-    project.user_id = req.tokenData._id;
-    const group = new GroupModel({ project_id: project._id, name: 'Group Title' });
+    board.share_with.push({ user_id: user._id, name: user.name, email: user.email, isOwner: true });
+    board.user_id = req.tokenData._id;
+    const group = new GroupModel({ board_id: board._id, name: 'Group Title' });
     const defaultTasks = [
       { name: 'Item 1', status: { name: '', style: 'rgb(121, 126, 147)' } },
       { name: 'Item 2', status: { name: 'Working on it', style: 'rgb(253, 188, 100)' } },
       { name: 'Item 3', status: { name: 'Done', style: 'rgb(51, 211, 145)' } },
     ];
     const tasks = new TaskModel({ group_id: group._id, tasks: defaultTasks });
-    await project.save();
+    await board.save();
     await group.save();
     await tasks.save();
 
-    res.status(201).json(project);
+    res.status(201).json(board);
   } catch (err) {
     console.log(err);
     res.status(502).json({ err });
@@ -92,12 +92,12 @@ const shareBoard = async (req: Request, res: Response) => {
     const boardID = req.params.boardID;
     const user = await UserModel.findOne({ email: req.body.user_email });
     if (!user) return res.sendStatus(400);
-    const project = await BoardModel.findOne({ _id: boardID });
-    if (!project) return res.sendStatus(400);
-    const isUserFound = project.share_with.some((obj) => obj.user_id === user.id);
+    const board = await BoardModel.findOne({ _id: boardID });
+    if (!board) return res.sendStatus(400);
+    const isUserFound = board.share_with.some((obj) => obj.user_id === user.id);
     if (!isUserFound) {
-      project.share_with.push({ user_id: user._id, name: user.name, email: user.email });
-      await project.save();
+      board.share_with.push({ user_id: user._id, name: user.name, email: user.email });
+      await board.save();
     }
 
     return res.sendStatus(200);
@@ -114,10 +114,10 @@ const unshareBoard = async (req: Request, res: Response) => {
   }
   try {
     const boardID = req.params.boardID;
-    const project = await BoardModel.findOne({ _id: boardID });
-    if (!project) return res.sendStatus(400);
-    project.share_with = project.share_with.filter((user) => user.email !== req.body.user_email || user.isOwner);
-    await project.save();
+    const board = await BoardModel.findOne({ _id: boardID });
+    if (!board) return res.sendStatus(400);
+    board.share_with = board.share_with.filter((user) => user.email !== req.body.user_email || user.isOwner);
+    await board.save();
 
     return res.sendStatus(200);
   } catch (err) {
@@ -134,12 +134,12 @@ const unshareBoard = async (req: Request, res: Response) => {
 //   }
 //   try {
 //     const boardID = req.params.boardID;
-//     const project = await BoardModel.findOne({ _id: boardID });
+//     const board = await BoardModel.findOne({ _id: boardID });
 //     const user = await UserModel.findOne({ email: req.body.user_email });
-//     const userIndex = project.share_with.indexOf(user._id);
+//     const userIndex = board.share_with.indexOf(user._id);
 //     if (userIndex === -1) return res.sendStatus(400);
-//     project.share_with.splice(userIndex, 1);
-//     await project.save();
+//     board.share_with.splice(userIndex, 1);
+//     await board.save();
 
 //     return res.sendStatus(200);
 //   } catch (err) {
@@ -149,7 +149,7 @@ const unshareBoard = async (req: Request, res: Response) => {
 // };
 
 const editBoard = async (req: Request, res: Response) => {
-  const validBody = validateProject(req.body);
+  const validBody = validateBoard(req.body);
   if (validBody.error) {
     return res.status(400).json(validBody.error.details);
   }
@@ -167,18 +167,18 @@ const editBoard = async (req: Request, res: Response) => {
 const deleteBoard = async (req: Request, res: Response) => {
   try {
     const boardID = req.params.boardID;
-    let project = await BoardModel.findOne({ _id: boardID });
-    if (!project) return res.sendStatus(401);
-    if (project.user_id !== req.tokenData._id) {
-      project.share_with = project.share_with.filter((user) => user.user_id !== req.tokenData._id);
-      await project.save();
+    let board = await BoardModel.findOne({ _id: boardID });
+    if (!board) return res.sendStatus(401);
+    if (board.user_id !== req.tokenData._id) {
+      board.share_with = board.share_with.filter((user) => user.user_id !== req.tokenData._id);
+      await board.save();
       return res.sendStatus(401);
     }
-    const groups = await GroupModel.find({ project_id: project._id });
+    const groups = await GroupModel.find({ board_id: board._id });
     if (groups) {
       groups.forEach(async (group) => {
         await TaskModel.deleteOne({ group_id: group._id });
-        await GroupModel.deleteOne({ project_id: group.project_id });
+        await GroupModel.deleteOne({ board_id: group.board_id });
       });
     }
     const deleted = await BoardModel.deleteOne({ _id: boardID });

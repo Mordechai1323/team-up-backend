@@ -14,7 +14,7 @@ const taskModel_1 = require("../../models/taskModel");
 const getGroups = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const boardID = req.query.boardID;
     try {
-        const groups = yield groupModel_1.GroupModel.find({ project_id: boardID });
+        const groups = yield groupModel_1.GroupModel.find({ board_id: boardID });
         return res.json(groups);
     }
     catch (err) {
@@ -27,7 +27,7 @@ const searchGroups = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     const search = String(req.query.s);
     const searchExp = new RegExp(search, 'i');
     try {
-        let groups = yield groupModel_1.GroupModel.find({ $and: [{ project_id: boardID }, { name: searchExp }] });
+        let groups = yield groupModel_1.GroupModel.find({ $and: [{ board_id: boardID }, { name: searchExp }] });
         return res.json(groups);
     }
     catch (err) {
@@ -38,7 +38,7 @@ const searchGroups = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 const addGroup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const boardID = req.query.boardID;
     try {
-        const group = new groupModel_1.GroupModel({ name: 'New Group', project_id: boardID });
+        const group = new groupModel_1.GroupModel({ name: 'New Group', board_id: boardID });
         const tasks = new taskModel_1.TaskModel({ group_id: group._id });
         yield group.save();
         yield tasks.save();

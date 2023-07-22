@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 interface IUser {
-  _id: string
+  _id: string;
   name: string;
   email: string;
   password: string;
@@ -13,6 +13,19 @@ interface IUser {
   role: string;
   one_time_code?: string;
   date_created: Date;
+}
+
+interface IValidateUser {
+  name: string;
+  email: string;
+  password: string;
+  recaptchaToken: string;
+}
+
+interface IValidateLogin {
+  email: string;
+  password: string;
+  recaptchaToken: string;
 }
 
 const userSchema: Schema = new mongoose.Schema({
@@ -35,7 +48,7 @@ const userSchema: Schema = new mongoose.Schema({
 
 export const UserModel = mongoose.model<IUser>('users', userSchema);
 
-export const validateUser = (reqBody: any) => {
+export const validateUser = (reqBody: IValidateUser) => {
   const joiSchema = Joi.object({
     name: Joi.string().min(2).max(150).required(),
     email: Joi.string().min(2).max(150).email().required(),
@@ -45,7 +58,7 @@ export const validateUser = (reqBody: any) => {
   return joiSchema.validate(reqBody);
 };
 
-export const validateLogin = (reqBody: any) => {
+export const validateLogin = (reqBody: IValidateLogin) => {
   const joiSchema = Joi.object({
     email: Joi.string().min(2).max(150).email().required(),
     password: Joi.string().min(6).max(150).required(),
@@ -55,7 +68,7 @@ export const validateLogin = (reqBody: any) => {
   return joiSchema.validate(reqBody);
 };
 
-export const validateUserEdit = (reqBody: any) => {
+export const validateUserEdit = (reqBody: { name: string; email: string }) => {
   let joiSchema = Joi.object({
     name: Joi.string().min(2).max(150).required(),
     email: Joi.string().min(2).max(150).email().required(),
@@ -63,7 +76,7 @@ export const validateUserEdit = (reqBody: any) => {
   return joiSchema.validate(reqBody);
 };
 
-export const validatePassword = (reqBody: any) => {
+export const validatePassword = (reqBody: { oldPassword: string; password: string }) => {
   let joiSchema = Joi.object({
     oldPassword: Joi.string().min(6).max(150).required(),
     password: Joi.string().min(6).max(150).required(),
@@ -71,7 +84,7 @@ export const validatePassword = (reqBody: any) => {
   return joiSchema.validate(reqBody);
 };
 
-export const validateEmail = (reqBody: any) => {
+export const validateEmail = (reqBody: { email: string }) => {
   let joiSchema = Joi.object({
     email: Joi.string().min(2).max(150).email().required(),
     // recaptchaToken: Joi.string().min(6).max(5000).required(),
@@ -79,14 +92,14 @@ export const validateEmail = (reqBody: any) => {
   return joiSchema.validate(reqBody);
 };
 
-export const validateOneTimeCode = (reqBody: any) => {
+export const validateOneTimeCode = (reqBody: { code: number }) => {
   let joiSchema = Joi.object({
     code: Joi.number().min(100000).max(999999).required(),
   });
   return joiSchema.validate(reqBody);
 };
 
-export const validatePasswordOneTimeCode = (reqBody: any) => {
+export const validatePasswordOneTimeCode = (reqBody: { password: string }) => {
   let joiSchema = Joi.object({
     password: Joi.string().min(6).max(150).required(),
   });

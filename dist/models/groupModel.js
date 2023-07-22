@@ -7,7 +7,7 @@ exports.validateEditGroup = exports.validateGroupId = exports.validateGroup = ex
 const mongoose_1 = __importDefault(require("mongoose"));
 const joi_1 = __importDefault(require("joi"));
 const groupSchema = new mongoose_1.default.Schema({
-    project_id: String,
+    board_id: String,
     name: String,
     is_open: {
         type: Boolean,
@@ -21,7 +21,7 @@ const groupSchema = new mongoose_1.default.Schema({
 exports.GroupModel = mongoose_1.default.model('groups', groupSchema);
 const validateGroup = (reqBody) => {
     const joiSchema = joi_1.default.object({
-        project_id: joi_1.default.string().min(2).max(150).required(),
+        board_id: joi_1.default.string().min(2).max(150).required(),
         name: joi_1.default.string().min(2).max(150).required(),
     });
     return joiSchema.validate(reqBody);
@@ -29,7 +29,7 @@ const validateGroup = (reqBody) => {
 exports.validateGroup = validateGroup;
 const validateGroupId = (reqBody) => {
     const joiSchema = joi_1.default.object({
-        project_id: joi_1.default.string().min(2).max(150).required(),
+        board_id: joi_1.default.string().min(2).max(150).required(),
     });
     return joiSchema.validate(reqBody);
 };

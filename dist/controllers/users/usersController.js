@@ -14,6 +14,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const userModel_1 = require("../../models/userModel");
+// interface MyRequest extends Request {
+//   query: {
+//     s: string;
+//   };
+// }
 const getAllUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let perPage = Number(req.query.perPage) || 10;
     let page = Number(req.query.page) || 1;
@@ -90,7 +95,7 @@ const editPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(502).json(err);
     }
 });
-//TODO delete projects user and groups and tasks
+//TODO delete board user and groups and tasks
 const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const user = yield userModel_1.UserModel.findOne({ _id: req.tokenData._id });

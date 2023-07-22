@@ -19,14 +19,14 @@ const getAllTeamBoards = (req, res) => __awaiter(void 0, void 0, void 0, functio
         const team = yield teamModel_1.TeamModel.findOne({ team_leader_id: req.tokenData._id });
         if (!team)
             return res.sendStatus(400);
-        const allTeamProjects = yield Promise.all(team.team_members.map((teamMemberId) => __awaiter(void 0, void 0, void 0, function* () {
+        const allTeamBoards = yield Promise.all(team.team_members.map((teamMemberId) => __awaiter(void 0, void 0, void 0, function* () {
             const user = yield userModel_1.UserModel.findOne({ _id: teamMemberId });
             if (user) {
-                const projects = yield boardModel_1.BoardModel.find({ user_id: user._id });
-                return { name: user.name, projects };
+                const boards = yield boardModel_1.BoardModel.find({ user_id: user._id });
+                return { name: user.name, boards };
             }
         })));
-        res.json(allTeamProjects);
+        res.json(allTeamBoards);
     }
     catch (err) {
         console.log(err);
@@ -40,9 +40,9 @@ const getMyBoards = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         const boards = yield boardModel_1.BoardModel.find({
             $and: [{ name: searchExp }, { share_with: { $elemMatch: { user_id: req.tokenData._id } } }],
         });
-        // const allboards = await Promise.all(
-        //   boards.map(async (project) => {
-        //     if (project.user_id === req.tokenData._id || project.share_with.includes(req.tokenData._id)) return project;
+        // const allBoards = await Promise.all(
+        //   boards.map(async (board) => {
+        //     if (board.user_id === req.tokenData._id || board.share_with.includes(req.tokenData._id)) return board;
         //   })
         // );
         res.json(boards);
@@ -53,28 +53,28 @@ const getMyBoards = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     }
 });
 const addBoard = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const validBody = (0, boardModel_1.validateProject)(req.body);
+    const validBody = (0, boardModel_1.validateBoard)(req.body);
     if (validBody.error) {
         return res.status(400).json(validBody.error.details);
     }
     try {
-        const project = new boardModel_1.BoardModel(req.body);
+        const board = new boardModel_1.BoardModel(req.body);
         const user = yield userModel_1.UserModel.findOne({ _id: req.tokenData._id });
         if (!user)
             return res.sendStatus(400);
-        project.share_with.push({ user_id: user._id, name: user.name, email: user.email, isOwner: true });
-        project.user_id = req.tokenData._id;
-        const group = new groupModel_1.GroupModel({ project_id: project._id, name: 'Group Title' });
+        board.share_with.push({ user_id: user._id, name: user.name, email: user.email, isOwner: true });
+        board.user_id = req.tokenData._id;
+        const group = new groupModel_1.GroupModel({ board_id: board._id, name: 'Group Title' });
         const defaultTasks = [
             { name: 'Item 1', status: { name: '', style: 'rgb(121, 126, 147)' } },
             { name: 'Item 2', status: { name: 'Working on it', style: 'rgb(253, 188, 100)' } },
             { name: 'Item 3', status: { name: 'Done', style: 'rgb(51, 211, 145)' } },
         ];
         const tasks = new taskModel_1.TaskModel({ group_id: group._id, tasks: defaultTasks });
-        yield project.save();
+        yield board.save();
         yield group.save();
         yield tasks.save();
-        res.status(201).json(project);
+        res.status(201).json(board);
     }
     catch (err) {
         console.log(err);
@@ -91,13 +91,13 @@ const shareBoard = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const user = yield userModel_1.UserModel.findOne({ email: req.body.user_email });
         if (!user)
             return res.sendStatus(400);
-        const project = yield boardModel_1.BoardModel.findOne({ _id: boardID });
-        if (!project)
+        const board = yield boardModel_1.BoardModel.findOne({ _id: boardID });
+        if (!board)
             return res.sendStatus(400);
-        const isUserFound = project.share_with.some((obj) => obj.user_id === user.id);
+        const isUserFound = board.share_with.some((obj) => obj.user_id === user.id);
         if (!isUserFound) {
-            project.share_with.push({ user_id: user._id, name: user.name, email: user.email });
-            yield project.save();
+            board.share_with.push({ user_id: user._id, name: user.name, email: user.email });
+            yield board.save();
         }
         return res.sendStatus(200);
     }
@@ -113,11 +113,11 @@ const unshareBoard = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     }
     try {
         const boardID = req.params.boardID;
-        const project = yield boardModel_1.BoardModel.findOne({ _id: boardID });
-        if (!project)
+        const board = yield boardModel_1.BoardModel.findOne({ _id: boardID });
+        if (!board)
             return res.sendStatus(400);
-        project.share_with = project.share_with.filter((user) => user.email !== req.body.user_email || user.isOwner);
-        yield project.save();
+        board.share_with = board.share_with.filter((user) => user.email !== req.body.user_email || user.isOwner);
+        yield board.save();
         return res.sendStatus(200);
     }
     catch (err) {
@@ -133,12 +133,12 @@ const unshareBoard = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 //   }
 //   try {
 //     const boardID = req.params.boardID;
-//     const project = await BoardModel.findOne({ _id: boardID });
+//     const board = await BoardModel.findOne({ _id: boardID });
 //     const user = await UserModel.findOne({ email: req.body.user_email });
-//     const userIndex = project.share_with.indexOf(user._id);
+//     const userIndex = board.share_with.indexOf(user._id);
 //     if (userIndex === -1) return res.sendStatus(400);
-//     project.share_with.splice(userIndex, 1);
-//     await project.save();
+//     board.share_with.splice(userIndex, 1);
+//     await board.save();
 //     return res.sendStatus(200);
 //   } catch (err) {
 //     console.log(err);
@@ -146,7 +146,7 @@ const unshareBoard = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 //   }
 // };
 const editBoard = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const validBody = (0, boardModel_1.validateProject)(req.body);
+    const validBody = (0, boardModel_1.validateBoard)(req.body);
     if (validBody.error) {
         return res.status(400).json(validBody.error.details);
     }
@@ -163,19 +163,19 @@ const editBoard = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 const deleteBoard = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const boardID = req.params.boardID;
-        let project = yield boardModel_1.BoardModel.findOne({ _id: boardID });
-        if (!project)
+        let board = yield boardModel_1.BoardModel.findOne({ _id: boardID });
+        if (!board)
             return res.sendStatus(401);
-        if (project.user_id !== req.tokenData._id) {
-            project.share_with = project.share_with.filter((user) => user.user_id !== req.tokenData._id);
-            yield project.save();
+        if (board.user_id !== req.tokenData._id) {
+            board.share_with = board.share_with.filter((user) => user.user_id !== req.tokenData._id);
+            yield board.save();
             return res.sendStatus(401);
         }
-        const groups = yield groupModel_1.GroupModel.find({ project_id: project._id });
+        const groups = yield groupModel_1.GroupModel.find({ board_id: board._id });
         if (groups) {
             groups.forEach((group) => __awaiter(void 0, void 0, void 0, function* () {
                 yield taskModel_1.TaskModel.deleteOne({ group_id: group._id });
-                yield groupModel_1.GroupModel.deleteOne({ project_id: group.project_id });
+                yield groupModel_1.GroupModel.deleteOne({ board_id: group.board_id });
             }));
         }
         const deleted = yield boardModel_1.BoardModel.deleteOne({ _id: boardID });

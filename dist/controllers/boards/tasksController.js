@@ -16,9 +16,6 @@ const getTasks = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const groupID = req.query.groupID;
     try {
         const tasks = yield taskModel_1.TaskModel.findOne({ group_id: groupID });
-        if (!tasks) {
-            return res.sendStatus(400);
-        }
         return res.json(tasks);
     }
     catch (err) {

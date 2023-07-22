@@ -5,7 +5,7 @@ import { TaskModel } from '../../models/taskModel';
 const getGroups = async (req: Request, res: Response) => {
   const boardID = req.query.boardID;
   try {
-    const groups = await GroupModel.find({ project_id: boardID });
+    const groups = await GroupModel.find({ board_id: boardID });
 
     return res.json(groups);
   } catch (err) {
@@ -20,7 +20,7 @@ const searchGroups = async (req: Request, res: Response) => {
   const searchExp = new RegExp(search, 'i');
 
   try {
-    let groups = await GroupModel.find({ $and: [{ project_id: boardID }, { name: searchExp }] });
+    let groups = await GroupModel.find({ $and: [{ board_id: boardID }, { name: searchExp }] });
 
     return res.json(groups);
   } catch (err) {
@@ -32,7 +32,7 @@ const searchGroups = async (req: Request, res: Response) => {
 const addGroup = async (req: Request, res: Response) => {
   const boardID = req.query.boardID;
   try {
-    const group = new GroupModel({ name: 'New Group', project_id: boardID });
+    const group = new GroupModel({ name: 'New Group', board_id: boardID });
     const tasks = new TaskModel({ group_id: group._id });
     await group.save();
     await tasks.save();

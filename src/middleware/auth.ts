@@ -72,12 +72,6 @@ export const authRefresh = (req: Request, res: Response, next: NextFunction) => 
   }
 };
 
-const getTokenFromRequest = (req: Request) => {
-  const authHeader = req.headers['authorization'];
-  if (!authHeader) return null;
-  return authHeader.split(' ')[1];
-};
-
 export const validateHuman = async (token: String) => {
   const response = await axios.post(
     `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${token}`

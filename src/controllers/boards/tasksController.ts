@@ -7,9 +7,6 @@ const getTasks = async (req: Request, res: Response) => {
   const groupID = req.query.groupID;
   try {
     const tasks = await TaskModel.findOne({ group_id: groupID });
-    if (!tasks) {
-      return res.sendStatus(400);
-    }
 
     return res.json(tasks);
   } catch (err) {

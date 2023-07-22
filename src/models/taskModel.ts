@@ -5,7 +5,7 @@ interface ITask {
   group_id: string;
   tasks: {
     name: string;
-    id?: string
+    id?: string;
     in_care?: string[];
     status: {
       name: string;
@@ -33,7 +33,7 @@ const taskSchema = new mongoose.Schema({
 
 export const TaskModel = mongoose.model<ITask>('tasks', taskSchema);
 
-export const validateTask = (reqBody: any) => {
+export const validateTask = (reqBody: { name: string }) => {
   const joiSchema = Joi.object({
     name: Joi.string().min(1).max(150).required(),
   });
@@ -41,7 +41,7 @@ export const validateTask = (reqBody: any) => {
   return joiSchema.validate(reqBody);
 };
 
-export const validateEditStatus = (reqBody: any) => {
+export const validateEditStatus = (reqBody: { name: string; style: string }) => {
   const joiSchema = Joi.object({
     name: Joi.string().min(0).max(150).required(),
     style: Joi.string().min(0).max(150).required(),

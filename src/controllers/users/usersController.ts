@@ -2,11 +2,11 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { UserModel, validateUserEdit, validatePassword } from '../../models/userModel';
 
-interface MyRequest extends Request {
-  query: {
-    s: string;
-  };
-}
+// interface MyRequest extends Request {
+//   query: {
+//     s: string;
+//   };
+// }
 
 const getAllUsers = async (req: Request, res: Response) => {
   let perPage = Number(req.query.perPage) || 10;
@@ -84,7 +84,7 @@ const editPassword = async (req: Request, res: Response) => {
   }
 };
 
-//TODO delete projects user and groups and tasks
+//TODO delete board user and groups and tasks
 const deleteUser = async (req: Request, res: Response) => {
   try {
     const user = await UserModel.findOne({ _id: req.tokenData._id });

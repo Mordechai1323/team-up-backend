@@ -2,14 +2,14 @@ import mongoose from 'mongoose';
 import Joi from 'joi';
 
 interface IGroup {
-  project_id: string;
+  board_id: string;
   name: string;
   is_open: boolean;
   date_created: Date;
 }
 
 const groupSchema = new mongoose.Schema({
-  project_id: String,
+  board_id: String,
   name: String,
   is_open: {
     type: Boolean,
@@ -23,24 +23,24 @@ const groupSchema = new mongoose.Schema({
 
 export const GroupModel = mongoose.model<IGroup>('groups', groupSchema);
 
-export const validateGroup = (reqBody: any) => {
+export const validateGroup = (reqBody: { board_id: string; name: string }) => {
   const joiSchema = Joi.object({
-    project_id: Joi.string().min(2).max(150).required(),
+    board_id: Joi.string().min(2).max(150).required(),
     name: Joi.string().min(2).max(150).required(),
   });
 
   return joiSchema.validate(reqBody);
 };
 
-export const validateGroupId = (reqBody: any) => {
+export const validateGroupId = (reqBody: { board_id: string }) => {
   const joiSchema = Joi.object({
-    project_id: Joi.string().min(2).max(150).required(),
+    board_id: Joi.string().min(2).max(150).required(),
   });
 
   return joiSchema.validate(reqBody);
 };
 
-export const validateEditGroup = (reqBody: any) => {
+export const validateEditGroup = (reqBody: { name: string }) => {
   const joiSchema = Joi.object({
     name: Joi.string().min(1).max(150).required(),
   });

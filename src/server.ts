@@ -20,7 +20,6 @@ import groups from './routes/api/groups';
 import tasks from './routes/api/tasks';
 import teams from './routes/api/teams';
 
-
 connectDB();
 
 app.use(credentials);

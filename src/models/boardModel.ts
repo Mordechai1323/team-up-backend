@@ -30,7 +30,7 @@ const boardSchema = new mongoose.Schema({
 
 export const BoardModel = mongoose.model<IBoard>('boards', boardSchema);
 
-export const validateProject = (reqBody: any) => {
+export const validateBoard = (reqBody: { name: string; completion_date?: Date }) => {
   const joiSchema = Joi.object({
     name: Joi.string().min(2).max(150).required(),
     completion_date: Joi.date().allow(null, ''),
@@ -39,7 +39,7 @@ export const validateProject = (reqBody: any) => {
   return joiSchema.validate(reqBody);
 };
 
-export const validateUserEmail = (reqBody: any) => {
+export const validateUserEmail = (reqBody: {user_email: string}) => {
   const joiSchema = Joi.object({
     user_email: Joi.string().min(2).max(150).email().required(),
   });

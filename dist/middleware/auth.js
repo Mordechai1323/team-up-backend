@@ -87,12 +87,6 @@ const authRefresh = (req, res, next) => {
     }
 };
 exports.authRefresh = authRefresh;
-const getTokenFromRequest = (req) => {
-    const authHeader = req.headers['authorization'];
-    if (!authHeader)
-        return null;
-    return authHeader.split(' ')[1];
-};
 const validateHuman = (token) => __awaiter(void 0, void 0, void 0, function* () {
     const response = yield axios_1.default.post(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${token}`);
     return response.data.success;

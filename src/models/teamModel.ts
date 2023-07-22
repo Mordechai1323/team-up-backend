@@ -18,7 +18,7 @@ const teamSchema = new mongoose.Schema({
 
 export const TeamModel = mongoose.model<ITeam>('teams', teamSchema);
 
-export const validateTeam = (reqBody: any) => {
+export const validateTeam = (reqBody: { team_members: string[]; name: string }) => {
   const joiSchema = Joi.object({
     team_members: Joi.array().items(Joi.string().min(1).max(150).required()),
     name: Joi.string().min(1).max(150).required(),
@@ -27,7 +27,7 @@ export const validateTeam = (reqBody: any) => {
   return joiSchema.validate(reqBody);
 };
 
-export const validateTeamMember = (reqBody: any) => {
+export const validateTeamMember = (reqBody: { team_member: string }) => {
   const joiSchema = Joi.object({
     team_member: Joi.string().min(1).max(150).email().required(),
   });
