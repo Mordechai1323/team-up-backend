@@ -75,7 +75,7 @@ const deleteInCare = async (req: Request, res: Response) => {
     tasks.tasks.forEach((task) => {
       if (task.id === taskID) {
         const index = task.in_care?.indexOf(req.body.user_email);
-        if (index && index !== -1) task.in_care?.splice(index, 1);
+        if (index !== undefined && index !== -1) task.in_care?.splice(index, 1);
       }
     });
     await tasks.save();
