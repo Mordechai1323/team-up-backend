@@ -5,8 +5,12 @@ import { validateUserEmail } from '../../models/boardModel';
 
 const getTasks = async (req: Request, res: Response) => {
   const groupID = req.query.groupID;
+  const filterByPerson = String(req.query.filterByPerson);
   try {
-    const tasks = await TaskModel.findOne({ group_id: groupID });
+    let tasks = await TaskModel.findOne({ group_id: groupID });
+    if (filterByPerson && tasks?.tasks) {
+      tasks.tasks = tasks?.tasks?.filter((task) => task?.in_care?.includes(filterByPerson));
+    }
 
     return res.json(tasks);
   } catch (err) {
