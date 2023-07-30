@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { BoardModel, validateBoard, validateUserEmail } from '../../models/boardModel';
-import { GroupModel } from '../../models/groupModel';
-import { TaskModel } from '../../models/taskModel';
+import { GroupModel } from '../../models/groupModel';``
 import { TeamModel } from '../../models/teamModel';
 import { UserModel } from '../../models/userModel';
 
@@ -71,10 +70,9 @@ const addBoard = async (req: Request, res: Response) => {
       { name: 'Item 2', status: { name: 'Working on it', style: 'rgb(253, 188, 100)' } },
       { name: 'Item 3', status: { name: 'Done', style: 'rgb(51, 211, 145)' } },
     ];
-    const tasks = new TaskModel({ group_id: group._id, tasks: defaultTasks });
+    group.tasks = defaultTasks;
     await board.save();
     await group.save();
-    await tasks.save();
 
     res.status(201).json(board);
   } catch (err) {
@@ -177,7 +175,6 @@ const deleteBoard = async (req: Request, res: Response) => {
     const groups = await GroupModel.find({ board_id: board._id });
     if (groups) {
       groups.forEach(async (group) => {
-        await TaskModel.deleteOne({ group_id: group._id });
         await GroupModel.deleteOne({ board_id: group.board_id });
       });
     }

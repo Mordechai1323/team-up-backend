@@ -17,7 +17,6 @@ import logout from './routes/logout';
 import users from './routes/api/users';
 import boards from './routes/api/boards';
 import groups from './routes/api/groups';
-import tasks from './routes/api/tasks';
 import teams from './routes/api/teams';
 
 connectDB();
@@ -40,7 +39,6 @@ app.use('/logout', logout);
 app.use('/users', users);
 app.use('/boards', boards);
 app.use('/groups', groups);
-app.use('/tasks', tasks);
 app.use('/teams', teams);
 
 const server = http.createServer(app);

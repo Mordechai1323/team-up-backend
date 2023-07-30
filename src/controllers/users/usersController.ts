@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { UserModel, validateUserEdit, validatePassword } from '../../models/userModel';
+import { BoardModel } from '../../models/boardModel';
+import { GroupModel } from '../../models/groupModel';
 
 // interface MyRequest extends Request {
 //   query: {
@@ -84,11 +86,15 @@ const editPassword = async (req: Request, res: Response) => {
   }
 };
 
-//TODO delete board user and groups and tasks
+
 const deleteUser = async (req: Request, res: Response) => {
   try {
-    const user = await UserModel.findOne({ _id: req.tokenData._id });
     const deleteUser = await UserModel.deleteOne({ _id: req.tokenData._id });
+    const boards = await BoardModel.find({ user_id: req.tokenData._id });
+    boards.forEach(async (board) => {
+      await GroupModel.deleteMany({ board_id: board._id });
+      await BoardModel.deleteOne({ _id: board._id });
+    });
     res.json(deleteUser);
   } catch (err) {
     console.log(err);
