@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { validateUser, UserModel, generateAccessToken, generateRefreshToken } from '../../models/userModel';
 import { validateHuman } from '../../middleware/auth';
+import logger  from '../../logger/logger.js';
 
 const handleNewUser = async (req: Request, res: Response) => {
   const validBody = validateUser(req.body);
@@ -29,7 +30,7 @@ const handleNewUser = async (req: Request, res: Response) => {
     if (err.code == 11000) {
       return res.status(401).json({ err: 'Email already in system, try log in', code: 11000 });
     }
-    console.log(err);
+    logger.error(err)
     res.status(502).json(err);
   }
 };

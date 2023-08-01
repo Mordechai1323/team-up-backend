@@ -1,17 +1,23 @@
 import { Request, Response } from 'express';
 import { TeamModel, validateTeam, validateTeamMember } from '../../models/teamModel';
 import { UserModel, generateAccessToken } from '../../models/userModel';
+import logger from '../../logger/logger.js';
 
 const getTeam = async (req: Request, res: Response) => {
-  const team = await TeamModel.findOne({ team_leader_id: req.tokenData._id });
-  if (!team) return res.sendStatus(400);
-  const teamMembers = await Promise.all(
-    team.team_members.map(
-      async (teamMemberId) => await UserModel.findOne({ _id: teamMemberId }, { password: 0, refresh_tokens: 0, one_time_code: 0 })
-    )
-  );
+  try {
+    const team = await TeamModel.findOne({ team_leader_id: req.tokenData._id });
+    if (!team) return res.sendStatus(400);
+    const teamMembers = await Promise.all(
+      team.team_members.map(
+        async (teamMemberId) => await UserModel.findOne({ _id: teamMemberId }, { password: 0, refresh_tokens: 0, one_time_code: 0 })
+      )
+    );
 
-  res.json(teamMembers);
+    res.json(teamMembers);
+  } catch (err) {
+    logger.error(err);
+    res.status(502).json(err);
+  }
 };
 
 const createTeam = async (req: Request, res: Response) => {
@@ -44,7 +50,7 @@ const createTeam = async (req: Request, res: Response) => {
 
     return res.json({ team, accessToken });
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };
@@ -65,7 +71,7 @@ const addTeamMember = async (req: Request, res: Response) => {
 
     return res.json(team);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };
@@ -88,7 +94,7 @@ const removeTeamMember = async (req: Request, res: Response) => {
 
     return res.json(team);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };
@@ -104,7 +110,7 @@ const deleteTeam = async (req: Request, res: Response) => {
     const accessToken = generateAccessToken(user._id, user.role, user.email);
     return res.json({ team, accessToken });
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };

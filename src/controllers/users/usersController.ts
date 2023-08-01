@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import { UserModel, validateUserEdit, validatePassword } from '../../models/userModel';
 import { BoardModel } from '../../models/boardModel';
 import { GroupModel } from '../../models/groupModel';
+import logger from '../../logger/logger.js';
 
 // interface MyRequest extends Request {
 //   query: {
@@ -26,7 +27,7 @@ const getAllUsers = async (req: Request, res: Response) => {
 
     res.json(users);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json(err);
   }
 };
@@ -36,7 +37,7 @@ const getMyInfo = async (req: Request, res: Response) => {
     const user = await UserModel.findOne({ _id: req.tokenData._id }, { password: 0, refresh_tokens: 0, one_time_code: 0 });
     res.json(user);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(500).json(err);
   }
 };
@@ -48,7 +49,7 @@ const count = async (req: Request, res: Response) => {
     const pages = Math.ceil(count / perPage);
     res.json({ count, pages });
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json(err);
   }
 };
@@ -62,7 +63,7 @@ const editUserDetails = async (req: Request, res: Response) => {
     const user = await UserModel.updateOne({ _id: req.tokenData._id }, req.body);
     res.json(user);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json(err);
   }
 };
@@ -81,11 +82,10 @@ const editPassword = async (req: Request, res: Response) => {
     const updateUser = await UserModel.updateOne({ _id: req.tokenData._id }, req.body);
     res.json(updateUser);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json(err);
   }
 };
-
 
 const deleteUser = async (req: Request, res: Response) => {
   try {
@@ -97,7 +97,7 @@ const deleteUser = async (req: Request, res: Response) => {
     });
     res.json(deleteUser);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json(err);
   }
 };
@@ -116,7 +116,7 @@ const changeRole = async (req: Request, res: Response) => {
     let data = await UserModel.updateOne({ _id: user_id }, { role });
     res.json(data);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json(err);
   }
 };

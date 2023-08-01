@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { GroupModel, validateEditGroup, validateEditStatus, validateTask } from '../../models/groupModel';
 import { validateUserEmail } from '../../models/boardModel';
+import logger from '../../logger/logger.js';
 
 //Groups
 const getGroups = async (req: Request, res: Response) => {
@@ -13,7 +14,7 @@ const getGroups = async (req: Request, res: Response) => {
 
     return res.json(groups);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };
@@ -28,7 +29,7 @@ const searchGroups = async (req: Request, res: Response) => {
 
     return res.json(groups);
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };
@@ -41,7 +42,7 @@ const addGroup = async (req: Request, res: Response) => {
 
     return res.json(group);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };
@@ -56,7 +57,7 @@ const changeIsOpen = async (req: Request, res: Response) => {
 
     return res.json(group);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };
@@ -72,7 +73,7 @@ const editGroup = async (req: Request, res: Response) => {
 
     return res.json(groups);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };
@@ -84,7 +85,7 @@ const deleteGroup = async (req: Request, res: Response) => {
 
     return res.json(groups);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };
@@ -108,7 +109,7 @@ const addTask = async (req: Request, res: Response) => {
 
     return res.json(group);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };
@@ -132,7 +133,7 @@ const addInCare = async (req: Request, res: Response) => {
 
     return res.status(201).json(group);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };
@@ -157,7 +158,7 @@ const deleteInCare = async (req: Request, res: Response) => {
 
     return res.status(201).json(group);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };
@@ -182,7 +183,7 @@ const changeStatus = async (req: Request, res: Response) => {
 
     return res.status(201).json(group);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };
@@ -204,7 +205,7 @@ const editTask = async (req: Request, res: Response) => {
 
     return res.json(group);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };
@@ -220,7 +221,7 @@ const deleteTask = async (req: Request, res: Response) => {
 
     return res.json(group);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };

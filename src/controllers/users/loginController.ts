@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { validateLogin, UserModel, generateAccessToken, generateRefreshToken } from'../../models/userModel'
 import { validateHuman } from'../../middleware/auth'
+import logger  from '../../logger/logger.js';
 
 const handleLogin = async (req: Request, res: Response) => {
   const validBody = validateLogin(req.body);
@@ -27,7 +28,7 @@ const handleLogin = async (req: Request, res: Response) => {
     res.cookie('token', refreshToken, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000, secure: true, sameSite: 'none' });
     res.json({ accessToken, name: user.name, role: user.role });
   } catch (err) {
-    console.log(err);
+    logger.error(err)
     res.sendStatus(502);
   }
 };

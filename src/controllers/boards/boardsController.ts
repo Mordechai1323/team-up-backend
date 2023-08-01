@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import { BoardModel, validateBoard, validateUserEmail } from '../../models/boardModel';
-import { GroupModel } from '../../models/groupModel';``
+import { GroupModel } from '../../models/groupModel';
 import { TeamModel } from '../../models/teamModel';
 import { UserModel } from '../../models/userModel';
+import logger from '../../logger/logger.js';
 
 interface MyRequest extends Request {
   query: {
@@ -26,7 +27,7 @@ const getAllTeamBoards = async (req: Request, res: Response) => {
 
     res.json(allTeamBoards);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };
@@ -48,7 +49,7 @@ const getMyBoards = async (req: MyRequest, res: Response) => {
 
     res.json(boards);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };
@@ -76,7 +77,7 @@ const addBoard = async (req: Request, res: Response) => {
 
     res.status(201).json(board);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };
@@ -100,7 +101,7 @@ const shareBoard = async (req: Request, res: Response) => {
 
     return res.sendStatus(200);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };
@@ -119,32 +120,11 @@ const unshareBoard = async (req: Request, res: Response) => {
 
     return res.sendStatus(200);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
     6;
   }
 };
-
-// const unshareBoard = async (req :Request, res: Response) => {
-//   const validBody = validateUserEmail(req.body);
-//   if (validBody.error) {
-//     return res.status(400).json(validBody.error.details);
-//   }
-//   try {
-//     const boardID = req.params.boardID;
-//     const board = await BoardModel.findOne({ _id: boardID });
-//     const user = await UserModel.findOne({ email: req.body.user_email });
-//     const userIndex = board.share_with.indexOf(user._id);
-//     if (userIndex === -1) return res.sendStatus(400);
-//     board.share_with.splice(userIndex, 1);
-//     await board.save();
-
-//     return res.sendStatus(200);
-//   } catch (err) {
-//     console.log(err);
-//     res.status(502).json({ err });
-//   }
-// };
 
 const editBoard = async (req: Request, res: Response) => {
   const validBody = validateBoard(req.body);
@@ -157,7 +137,7 @@ const editBoard = async (req: Request, res: Response) => {
 
     res.json(update);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };
@@ -182,7 +162,7 @@ const deleteBoard = async (req: Request, res: Response) => {
 
     res.status(200).json(deleted);
   } catch (err) {
-    console.log(err);
+    logger.error(err);
     res.status(502).json({ err });
   }
 };

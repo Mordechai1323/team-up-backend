@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { UserModel, generateAccessToken } from '../../models/userModel';
+import logger  from '../../logger/logger.js';
 
 const handleRefreshToken = async (req: Request, res: Response) => {
   try {
@@ -13,7 +14,8 @@ const handleRefreshToken = async (req: Request, res: Response) => {
     const accessToken = generateAccessToken(user._id, user.role, user.email);
     res.json({ accessToken, name: user.name, role: user.role });
   } catch (err) {
-    return res.status(403).json({ err: 'fail validating token' });
+    logger.error(err)
+    res.status(502).json(err);
   }
 };
 
