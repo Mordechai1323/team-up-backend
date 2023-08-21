@@ -9,6 +9,6 @@ router.route('/myInfo').get(auth, usersController.getMyInfo);
 router.route('/allUsers').get(authAdmin, usersController.getAllUsers);
 router.route('/count').get(authAdmin, usersController.count);
 router.route('/editPassword').put(auth, usersController.editPassword);
-router.route('/changeRole').patch(authAdmin, usersController.getMyInfo);
+router.route('/changeRole').patch(authAdmin, usersController.changeRole);
 
 export = router;

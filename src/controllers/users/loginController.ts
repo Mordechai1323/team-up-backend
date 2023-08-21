@@ -10,8 +10,10 @@ const handleLogin = async (req: Request, res: Response) => {
     return res.status(400).json(validBody.error.details);
   }
   try {
-    const human = await validateHuman(req.body.recaptchaToken);
-    if (!human) return res.sendStatus(400);
+    if (process.env.MODE_ENV === 'production') {
+      const human = await validateHuman(req.body.recaptchaToken);
+      if (!human) return res.sendStatus(400);
+    }
 
     const user = await UserModel.findOne({ email: req.body.email });
     if (!user) return res.sendStatus(401);
