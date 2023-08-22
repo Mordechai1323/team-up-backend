@@ -135,7 +135,6 @@ const editBoard = async (req: Request, res: Response) => {
   }
   try {
     const boardID = req.params.boardID;
-    if (!boardID) return res.sendStatus(400);
     const update = await BoardModel.updateOne({ _id: boardID }, req.body);
 
     res.json(update);
