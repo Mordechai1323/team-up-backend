@@ -5,25 +5,32 @@ import { BoardModel } from '../../models/boardModel';
 import { GroupModel } from '../../models/groupModel';
 import logger from '../../logger/logger.js';
 
-// interface MyRequest extends Request {
-//   query: {
-//     s: string;
-//   };
-// }
+interface MyRequest extends Request {
+  query: {
+    s: string;
+    page: string;
+    perPage: string;
+    sort: string;
+    reverse: string;
+  };
+}
 
-const getAllUsers = async (req: Request, res: Response) => {
+const getAllUsers = async (req: MyRequest, res: Response) => {
   let perPage = Number(req.query.perPage) || 10;
   let page = Number(req.query.page) || 1;
   let sort = String(req.query.sort) || '_id';
   let reverse = req.query.reverse == 'true' ? -1 : 1;
-  let search = String(req.query.s);
-  let searchExp = new RegExp(search, 'i');
+  let search = req.query.s;
+  let searchExp;
+  if (search) {
+    searchExp = new RegExp(search, 'i');
+  }
 
   try {
     let users = await UserModel.find({ name: searchExp }, { password: 0, refresh_tokens: 0, one_time_code: 0 })
       .limit(perPage)
       .skip((page - 1) * perPage)
-      .sort(sort);
+      .sort({ [sort]: reverse } as { [key: string]: 1 | -1 });
 
     res.json(users);
   } catch (err) {
@@ -107,10 +114,11 @@ const changeRole = async (req: Request, res: Response) => {
   try {
     let user_id = req.query.user_id;
     let role = req.query.role;
+
     if (!user_id || !role) {
       return res.status(400).json({ err: 'user_id and role are required parameters' });
     }
-    if (user_id == req.tokenData._id || user_id == '6483a9bc8c88e56dcfbf0148') {
+    if (user_id === req.tokenData._id || user_id == '6483a9bc8c88e56dcfbf0148') {
       return res.status(401).json({ err: 'You try to change yourself or the super admin' });
     }
     let data = await UserModel.updateOne({ _id: user_id }, { role });
