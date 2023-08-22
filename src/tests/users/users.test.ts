@@ -211,3 +211,46 @@ describe('edit user', () => {
   });
 });
 
+describe('editPassword', () => {
+  let token: string;
+  beforeAll(async () => {
+    await UserModel.deleteMany({});
+    const response = await request(app).post('/register').send(user);
+    token = response.body.accessToken;
+  });
+
+  test('should return 401 if token is missing', async () => {
+    const response = await request(app).put('/users/editPassword').send({ password: 'password', oldPassword: 'pass' });
+
+    expect(response.statusCode).toEqual(401);
+    expect(response.body).toHaveProperty('err', 'authentication missing');
+  });
+
+  test('should return 403 if token invalid', async () => {
+    const response = await request(app)
+      .put('/users/editPassword')
+      .set('authorization', `Bearer invalidToken`)
+      .send({ password: 'password', oldPassword: 'pass' });
+
+    expect(response.statusCode).toEqual(403);
+    expect(response.body).toHaveProperty('err', 'fail validating token');
+  });
+
+  test('Should return 401 if old password does not match', async () => {
+    const res = await request(app)
+      .put('/users/editPassword')
+      .set('authorization', `Bearer ${token}`)
+      .send({ password: 'newPassword', oldPassword: 'incorrectPassword' });
+    expect(res.statusCode).toEqual(401);
+  });
+
+  test('Should return 200 if password is changed successfully', async () => {
+    const res = await request(app)
+      .put('/users/editPassword')
+      .set('authorization', `Bearer ${token}`)
+      .send({ password: 'newPassword', oldPassword: '******' });
+    expect(res.statusCode).toBe(200);
+    expect(res.body.modifiedCount).toBe(1);
+  });
+});
+
