@@ -151,4 +151,63 @@ describe('count tests', () => {
   });
 });
 
+describe('edit user', () => {
+  let token: string;
+
+  beforeAll(async () => {
+    await UserModel.deleteMany({});
+    let user = new UserModel({
+      name: 'test',
+      email: 'test@mail.com',
+      password: 'test',
+      role: 'user',
+    });
+    await user.save();
+    token = generateAccessToken(user._id, user.role, user.email);
+  });
+
+  test('Should return 400 when the data is not valid', async () => {
+    const res = await request(app).put('/users').set('authorization', `Bearer ${token}`).send({});
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toEqual([
+      {
+        message: '"name" is required',
+        path: ['name'],
+        type: 'any.required',
+        context: {
+          label: 'name',
+          key: 'name',
+        },
+      },
+    ]);
+  });
+
+  test('should return 401 if token is missing', async () => {
+    const response = await request(app).put('/users/').send({ name: 'updated', email: 'updated@mail.com' });
+
+    expect(response.statusCode).toEqual(401);
+    expect(response.body).toHaveProperty('err', 'authentication missing');
+  });
+
+  test('should return 403 if token invalid', async () => {
+    const response = await request(app)
+      .put('/users')
+      .set('authorization', `Bearer invalidToken`)
+      .send({ name: 'updated', email: 'updated@mail.com' });
+
+    expect(response.statusCode).toEqual(403);
+    expect(response.body).toHaveProperty('err', 'fail validating token');
+  });
+
+  test('Should return the updated user', async () => {
+    const res = await request(app)
+      .put('/users')
+      .set('authorization', `Bearer ${token}`)
+      .send({ name: 'updated', email: 'updated@mail.com' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.modifiedCount).toBe(1);
+  });
+});
 
