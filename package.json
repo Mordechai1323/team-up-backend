@@ -2,22 +2,18 @@
   "name": "team-up-backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "build": "npx tsc",
     "start": "node dist/server.js",
-    "dev": "tsc -w & nodemon dist/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "npx tsc && node dist/src/server.js",
+    "test": "tsc && jest --detectOpenHandles --forceExit",
+    "testRegister": "tsc && jest --detectOpenHandles --forceExit --runInBand ./dist/src/tests/users/register.test.js",
+    "testBoard": "tsc && jest --detectOpenHandles --forceExit --runInBand ./dist/src/tests/boards/board.test.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/bcrypt": "^5.0.0",
-    "@types/cookie-parser": "^1.4.3",
-    "@types/cors": "^2.8.13",
-    "@types/express": "^4.17.17",
-    "@types/jsonwebtoken": "^9.0.2",
-    "@types/node": "^20.4.2",
     "axios": "^1.4.0",
     "bcrypt": "^5.1.0",
     "cookie-parser": "^1.4.6",
@@ -31,7 +27,19 @@
     "winston-daily-rotate-file": "^4.7.1"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
+    "@types/cookie-parser": "^1.4.3",
+    "@types/cors": "^2.8.13",
+    "@types/express": "^4.17.17",
+    "@types/jest": "^29.5.3",
+    "@types/jsonwebtoken": "^9.0.2",
+    "@types/node": "^20.5.1",
+    "@types/supertest": "^2.0.12",
+    "jest": "^29.6.3",
     "nodemon": "^3.0.1",
+    "supertest": "^6.3.3",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
   }
 }

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { UserModel }  from'../../models/userModel'
-import logger  from '../../logger/logger.js';
+import { UserModel } from '../../models/userModel';
+import logger from '../../logger/logger.js';
 
 const handleLogout = async (req: Request, res: Response) => {
   try {
@@ -20,10 +20,9 @@ const handleLogout = async (req: Request, res: Response) => {
     res.clearCookie('token', { httpOnly: true });
     res.sendStatus(200);
   } catch (err) {
-    logger.error(err)
+    logger.error(err);
     res.status(502).json(err);
   }
-}
+};
 
-
-export default { handleLogout }
+export default { handleLogout };

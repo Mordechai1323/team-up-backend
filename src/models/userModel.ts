@@ -49,34 +49,34 @@ const userSchema: Schema = new mongoose.Schema({
 export const UserModel = mongoose.model<IUser>('users', userSchema);
 
 export const validateUser = (reqBody: IValidateUser) => {
-  const developmentSchema = Joi.object({
+  const developmentSchema = {
     name: Joi.string().min(2).max(150).required(),
     email: Joi.string().min(2).max(150).email().required(),
     password: Joi.string().min(6).max(150).required(),
-  });
+  };
 
   const productionSchema = Joi.object({
     ...developmentSchema,
     recaptchaToken: Joi.string().min(6).max(50000).required(),
   });
 
-  const joiSchema = process.env.NODE_ENV === 'production' ? productionSchema : developmentSchema;
+  const joiSchema = process.env.NODE_ENV === 'production' ? productionSchema : Joi.object(developmentSchema);
 
   return joiSchema.validate(reqBody);
 };
 
 export const validateLogin = (reqBody: IValidateLogin) => {
-  const developmentSchema = Joi.object({
+  const developmentSchema = {
     email: Joi.string().min(2).max(150).email().required(),
     password: Joi.string().min(6).max(150).required(),
-  });
+  };
 
   const productionSchema = Joi.object({
     ...developmentSchema,
     recaptchaToken: Joi.string().min(6).max(50000).required(),
   });
 
-  const joiSchema = process.env.NODE_ENV === 'production' ? productionSchema : developmentSchema;
+  const joiSchema = process.env.NODE_ENV === 'production' ? productionSchema : Joi.object(developmentSchema);
 
   return joiSchema.validate(reqBody);
 };

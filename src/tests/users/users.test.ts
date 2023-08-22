@@ -64,4 +64,41 @@ describe('allUsers tests', () => {
   });
 });
 
+describe('myInfo tests', () => {
+  let token: string;
+
+  beforeAll(async () => {
+    await UserModel.deleteMany({});
+    const response = await request(app).post('/register').send(user);
+    token = response.body.accessToken;
+  });
+
+  test('should return user information if authenticated', async () => {
+    const response = await request(app).get('/users/myInfo').set('authorization', `Bearer ${token}`);
+
+    expect(response.status).toEqual(200);
+    expect(response.body).toHaveProperty('name', 'test');
+    expect(response.body).toHaveProperty('email', 'test@mail.com');
+    expect(response.body).not.toHaveProperty('password');
+    expect(response.body).not.toHaveProperty('refresh_tokens');
+    expect(response.body).not.toHaveProperty('one_time_code');
+  });
+
+  test('should return 401 if token is missing', async () => {
+    const response =  await request(app).get('/users/myInfo')
+
+    expect(response.statusCode).toEqual(401);
+    expect(response.body).toHaveProperty('err', 'authentication missing');
+  });
+
+  test('should return 403 if token invalid', async () => {
+    const response = await request(app)
+      .get('/users/myInfo')
+      .set('authorization', `Bearer invalidToken`)
+
+    expect(response.statusCode).toEqual(403);
+    expect(response.body).toHaveProperty('err', 'fail validating token');
+  });
+});
+
 

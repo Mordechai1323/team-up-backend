@@ -8,7 +8,7 @@ interface IDecodeToken {
   role: string;
   _id: string;
   email?: string;
-} 
+}
 
 export const auth = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers['authorization'];
@@ -16,7 +16,7 @@ export const auth = (req: Request, res: Response, next: NextFunction) => {
   // const token = authHeader;
   const token = authHeader.split(' ')[1];
   try {
-    let decodeToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET) as IDecodeToken
+    let decodeToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET) as IDecodeToken;
     req.tokenData = decodeToken;
     next();
   } catch (err) {
@@ -30,7 +30,7 @@ export const authTeamLeader = (req: Request, res: Response, next: NextFunction) 
   // const token = authHeader
   const token = authHeader.split(' ')[1];
   try {
-    let decodeToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET) as IDecodeToken
+    let decodeToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET) as IDecodeToken;
     if (decodeToken.role !== 'team_leader') {
       return res.status(401).json({ err: 'authentication missing!!!!!!!!!' });
     }
@@ -47,7 +47,7 @@ export const authAdmin = (req: Request, res: Response, next: NextFunction) => {
   // const token = authHeader
   const token = authHeader.split(' ')[1];
   try {
-    let decodeToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET) as IDecodeToken
+    let decodeToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET) as IDecodeToken;
     if (decodeToken.role !== 'admin') {
       return res.status(401).json({ err: 'authentication missing!!!!!!!!!' });
     }
@@ -63,7 +63,7 @@ export const authRefresh = (req: Request, res: Response, next: NextFunction) => 
   if (!cookies?.token) return res.status(401).json({ err: 'no cookies' });
   const refreshToken = cookies.token;
   try {
-    let decodeToken = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET) as IDecodeToken
+    let decodeToken = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET) as IDecodeToken;
     req.tokenData = decodeToken;
     req.refreshToken = refreshToken;
     next();
