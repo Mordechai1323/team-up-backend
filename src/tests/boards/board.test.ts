@@ -3,6 +3,7 @@ import app from '../../server';
 import mongoose from 'mongoose';
 import { UserModel } from '../../models/userModel';
 import { BoardModel } from '../../models/boardModel';
+import { TeamModel } from '../../models/teamModel';
 
 const testUser = {
   name: 'test',
@@ -89,8 +90,6 @@ describe('board tests', () => {
     });
 
     test('should delete board', async () => {
-      console.log(boardID);
-
       const response = await request(app).delete(`/boards/${boardID}`).set('authorization', `Bearer ${token}`);
 
       expect(response.statusCode).toEqual(200);
@@ -149,7 +148,7 @@ describe('board tests', () => {
     });
 
     test('should return only board test 2', async () => {
-      const response = await request(app).get(`/boards/getMyBoards`).set('authorization', `Bearer ${token}`).query({s: 'board test 2'});
+      const response = await request(app).get(`/boards/getMyBoards`).set('authorization', `Bearer ${token}`).query({ s: 'board test 2' });
 
       expect(response.status).toEqual(200);
       expect(Array.isArray(response.body)).toBe(true);
@@ -168,6 +167,74 @@ describe('board tests', () => {
 
       expect(response.statusCode).toEqual(403);
       expect(response.body).toHaveProperty('err', 'fail validating token');
+    });
+  });
+
+  describe('get all team boards test', () => {
+    let tokenTeamLeader: string;
+    beforeAll(async () => {
+      await UserModel.deleteMany({});
+      await BoardModel.deleteMany({});
+      const team_leader = {
+        name: 'team leader',
+        email: 'teamLeader@mail.com',
+        password: '******',
+      };
+      const team = { team_members: ['test@mail.com', 'teamLeader@mail.com'], name: 'test' };
+
+      const resUser = await request(app).post('/register').send(testUser);
+      const tokenUser = resUser.body.accessToken;
+      const resTeamLeader = await request(app).post('/register').send(team_leader);
+      tokenTeamLeader = resTeamLeader.body.accessToken;
+      const resBoard = await request(app).post('/boards').set('authorization', `Bearer ${tokenUser}`).send({ name: 'board user' });
+      await request(app).post('/boards').set('authorization', `Bearer ${tokenTeamLeader}`).send({ name: 'board team leader' });
+      const response = await request(app).post('/teams').set('authorization', `Bearer ${tokenTeamLeader}`).send(team);
+      tokenTeamLeader = response.body.accessToken;
+    });
+
+    test('should return array of team members with our boards', async () => {
+      const response = await request(app).get('/boards/getAllTeamBoards').set('authorization', `Bearer ${tokenTeamLeader}`);
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body[0]).toHaveProperty('name', 'test');
+      expect(response.body[0].boards.length).toEqual(1);
+      expect(response.body[1]).toHaveProperty('name', 'team leader');
+      expect(response.body[1].boards.length).toEqual(1);
+    });
+
+    test('should return only one board of team leader', async () => {
+      const response = await request(app)
+        .get('/boards/getAllTeamBoards')
+        .set('authorization', `Bearer ${tokenTeamLeader}`)
+        .query({ s: 'board team leader' });
+
+        expect(response.statusCode).toEqual(200);
+        expect(response.body[0]).toHaveProperty('name', 'test');
+        expect(response.body[0].boards.length).toEqual(0);
+        expect(response.body[1]).toHaveProperty('name', 'team leader');
+        expect(response.body[1].boards.length).toEqual(1);
+    });
+
+    test('should return 401 if token is missing', async () => {
+      const response = await request(app).get(`/boards/getAllTeamBoards`);
+
+      expect(response.statusCode).toEqual(401);
+      expect(response.body).toHaveProperty('err', 'authentication missing');
+    });
+
+    test('should return 403 if token invalid', async () => {
+      const response = await request(app).get(`/boards/getAllTeamBoards`).set('authorization', `Bearer invalidToken`);
+
+      expect(response.statusCode).toEqual(403);
+      expect(response.body).toHaveProperty('err', 'fail validating token');
+    });
+
+    test('should return 400 if team not exist', async () => {
+      const teamLeader = await UserModel.findOne({ email: 'teamLeader@mail.com' });
+      await TeamModel.deleteOne({ team_leader_id: teamLeader?._id });
+      const response = await request(app).get('/boards/getAllTeamBoards').set('authorization', `Bearer ${tokenTeamLeader}`);
+
+      expect(response.statusCode).toEqual(400);
     });
   });
 });
