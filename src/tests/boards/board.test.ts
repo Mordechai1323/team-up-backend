@@ -73,4 +73,55 @@ describe('board tests', () => {
       expect(response.statusCode).toEqual(400);
     });
   });
+
+  describe('delete board test', () => {
+    let token: string;
+    let boardID: string;
+    let user: any;
+    beforeAll(async () => {
+      await UserModel.deleteMany({});
+      await BoardModel.deleteMany({});
+      const response = await request(app).post('/register').send(testUser);
+      token = response.body.accessToken;
+      const resBoard = await request(app).post('/boards').set('authorization', `Bearer ${token}`).send({ name: 'board test' });
+      boardID = resBoard?.body._id;
+      user = await UserModel.findOne({ email: 'test@mail.com' });
+    });
+
+    test('should delete board', async () => {
+      console.log(boardID);
+
+      const response = await request(app).delete(`/boards/${boardID}`).set('authorization', `Bearer ${token}`);
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body).toHaveProperty('deletedCount', 1);
+    });
+
+    test('should return 400 if validation fails', async () => {
+      const response = await request(app).delete(`/boards/${boardID}`).set('authorization', `Bearer ${token}`);
+
+      expect(response.statusCode).toEqual(400);
+    });
+
+    test('should return 401 if token is missing', async () => {
+      const response = await request(app).delete(`/boards/${boardID}`);
+
+      expect(response.statusCode).toEqual(401);
+      expect(response.body).toHaveProperty('err', 'authentication missing');
+    });
+
+    test('should return 403 if token invalid', async () => {
+      const response = await request(app).delete(`/boards/${boardID}`).set('authorization', `Bearer invalidToken`);
+
+      expect(response.statusCode).toEqual(403);
+      expect(response.body).toHaveProperty('err', 'fail validating token');
+    });
+
+    test('should return 400 if user not exist', async () => {
+      await BoardModel.deleteOne({ _id: boardID });
+      const response = await request(app).delete(`/boards/${boardID}`).set('authorization', `Bearer ${token}`);
+
+      expect(response.statusCode).toEqual(400);
+    });
+  });
 });

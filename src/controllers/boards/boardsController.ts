@@ -147,8 +147,9 @@ const editBoard = async (req: Request, res: Response) => {
 const deleteBoard = async (req: Request, res: Response) => {
   try {
     const boardID = req.params.boardID;
+    if (!boardID)  return res.sendStatus(400);
     let board = await BoardModel.findOne({ _id: boardID });
-    if (!board) return res.sendStatus(401);
+    if (!board) return res.sendStatus(400);
     if (board.user_id !== req.tokenData._id) {
       board.share_with = board.share_with.filter((user) => user.user_id !== req.tokenData._id);
       await board.save();
