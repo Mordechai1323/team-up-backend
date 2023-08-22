@@ -254,3 +254,33 @@ describe('editPassword', () => {
   });
 });
 
+describe('Delete user tests', () => {
+  let token: string;
+  beforeEach(async () => {
+    await UserModel.deleteMany({});
+    const response = await request(app).post('/register').send(user);
+    token = response.body.accessToken;
+  });
+
+  test('should return 401 if no token provided', async () => {
+    const res = await request(app).delete('/users');
+
+    expect(res.statusCode).toEqual(401);
+    expect(res.body).toHaveProperty('err', 'authentication missing');
+  });
+
+  test('should return 401 if token is invalid or expired', async () => {
+    const res = await request(app).delete('/users').set('authorization', `Bearer invalidToken`);
+
+    expect(res.statusCode).toEqual(403);
+    expect(res.body.err).toEqual('fail validating token');
+  });
+
+  test('should delete a user', async () => {
+    const res = await request(app).delete('/users').set('authorization', `Bearer ${token}`);
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty('deletedCount', 1);
+  });
+});
+
