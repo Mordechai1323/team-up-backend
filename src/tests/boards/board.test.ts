@@ -309,6 +309,26 @@ describe('board tests', () => {
       expect(response.statusCode).toEqual(200);
     });
 
+    test("Should return 404 if don't send a boardID", async () => {
+      const response = await request(app).post(`/boards/shareBoard/`).set('authorization', `Bearer ${token}`);
+
+      expect(response.statusCode).toEqual(404);
+    });
+
+    test('Should return 403 if token invalid', async () => {
+      const response = await request(app).post(`/boards/shareBoard/${boardID}`).set('authorization', `Bearer invalidToken`);
+
+      expect(response.statusCode).toEqual(403);
+      expect(response.body).toHaveProperty('err', 'fail validating token');
+    });
+
+    test('Should return 401 if token is missing', async () => {
+      const response = await request(app).post(`/boards/shareBoard/${boardID}`);
+
+      expect(response.statusCode).toEqual(401);
+      expect(response.body).toHaveProperty('err', 'authentication missing');
+    });
+
     test("Should return 400 if don't send email user", async () => {
       const response = await request(app).post(`/boards/shareBoard/${boardID}`).set('authorization', `Bearer ${token}`);
 
@@ -342,25 +362,77 @@ describe('board tests', () => {
 
       expect(response.statusCode).toEqual(400);
     });
+  });
 
-    test('Should return 401 if token is missing', async () => {
-      const response = await request(app).post(`/boards/shareBoard/${boardID}`);
+  describe('unshare board tests', () => {
+    let token: string;
+    let boardID: string;
+    beforeAll(async () => {
+      await UserModel.deleteMany({});
+      await BoardModel.deleteMany({});
+      let userShare = {
+        name: 'userShare',
+        email: 'userShare@mail.com',
+        password: 'password',
+      };
+      const response = await request(app).post('/register').send(testUser);
+      await request(app).post('/register').send(userShare);
+      token = response.body.accessToken;
+      const resBoard = await request(app).post('/boards').set('authorization', `Bearer ${token}`).send({ name: 'board test' });
+      boardID = resBoard?.body._id;
+    });
 
-      expect(response.statusCode).toEqual(401);
-      expect(response.body).toHaveProperty('err', 'authentication missing');
+    test('Should unshare userShare@mail from board', async () => {
+      const response = await request(app)
+        .post(`/boards/shareBoard/${boardID}`)
+        .set('authorization', `Bearer ${token}`)
+        .send({ user_email: 'userShare@mail.com' });
+
+      expect(response.statusCode).toEqual(200);
+    });
+
+    test("Should return 404 if don't send a boardID", async () => {
+      const response = await request(app).post(`/boards/unshareBoard/`).set('authorization', `Bearer ${token}`);
+
+      expect(response.statusCode).toEqual(404);
     });
 
     test('Should return 403 if token invalid', async () => {
-      const response = await request(app).post(`/boards/shareBoard/${boardID}`).set('authorization', `Bearer invalidToken`);
+      const response = await request(app).post(`/boards/unshareBoard/${boardID}`).set('authorization', `Bearer invalidToken`);
 
       expect(response.statusCode).toEqual(403);
       expect(response.body).toHaveProperty('err', 'fail validating token');
     });
 
-    test("Should return 404 if don't send a boardID", async () => {
-      const response = await request(app).post(`/boards/shareBoard/`).set('authorization', `Bearer ${token}`);
+    test('Should return 401 if token is missing', async () => {
+      const response = await request(app).post(`/boards/unshareBoard/${boardID}`);
 
-      expect(response.statusCode).toEqual(404);
+      expect(response.statusCode).toEqual(401);
+      expect(response.body).toHaveProperty('err', 'authentication missing');
+    });
+
+    test("Should return 400 if don't send email user", async () => {
+      const response = await request(app).post(`/boards/unshareBoard/${boardID}`).set('authorization', `Bearer ${token}`);
+
+      expect(response.statusCode).toEqual(400);
+      expect(response.body).toEqual([
+        {
+          message: '"user_email" is required',
+          path: ['user_email'],
+          type: 'any.required',
+          context: { label: 'user_email', key: 'user_email' },
+        },
+      ]);
+    });
+
+    test('Should return 400 if board not exist', async () => {
+      await BoardModel.deleteOne({ _id: boardID });
+      const response = await request(app)
+        .post(`/boards/unshareBoard/${boardID}`)
+        .set('authorization', `Bearer ${token}`)
+        .send({ user_email: 'userShare@mail.com' });
+
+      expect(response.statusCode).toEqual(400);
     });
   });
 });
