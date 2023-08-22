@@ -29,7 +29,7 @@ describe('board tests', () => {
       user = await UserModel.findOne({ email: 'test@mail.com' });
     });
 
-    test('should create new board', async () => {
+    test('Should create new board', async () => {
       const response = await request(app).post('/boards').set('authorization', `Bearer ${token}`).send({ name: 'board test' });
 
       expect(response.statusCode).toEqual(201);
@@ -39,7 +39,7 @@ describe('board tests', () => {
       expect(response.body.share_with[0]).toHaveProperty('isOwner', true);
     });
 
-    test('should return 400 if validation fails', async () => {
+    test('Should return 400 if validation fails', async () => {
       const response = await request(app).post('/boards').set('authorization', `Bearer ${token}`);
 
       expect(response.statusCode).toEqual(400);
@@ -53,21 +53,21 @@ describe('board tests', () => {
       ]);
     });
 
-    test('should return 401 if token is missing', async () => {
+    test('Should return 401 if token is missing', async () => {
       const response = await request(app).post('/boards').send({ name: 'board test' });
 
       expect(response.statusCode).toEqual(401);
       expect(response.body).toHaveProperty('err', 'authentication missing');
     });
 
-    test('should return 403 if token invalid', async () => {
+    test('Should return 403 if token invalid', async () => {
       const response = await request(app).post('/boards').set('authorization', `Bearer invalidToken`).send({ name: 'board test' });
 
       expect(response.statusCode).toEqual(403);
       expect(response.body).toHaveProperty('err', 'fail validating token');
     });
 
-    test('should return 400 if user not exist', async () => {
+    test('Should return 400 if user not exist', async () => {
       await UserModel.deleteOne({ email: 'test@mail.com' });
       const response = await request(app).post('/boards').set('authorization', `Bearer ${token}`).send({ name: 'board test' });
 
@@ -89,34 +89,34 @@ describe('board tests', () => {
       user = await UserModel.findOne({ email: 'test@mail.com' });
     });
 
-    test('should delete board', async () => {
+    test('Should return 200 if board delete successfully', async () => {
       const response = await request(app).delete(`/boards/${boardID}`).set('authorization', `Bearer ${token}`);
 
       expect(response.statusCode).toEqual(200);
       expect(response.body).toHaveProperty('deletedCount', 1);
     });
 
-    test('should return 400 if validation fails', async () => {
+    test('Should return 400 if validation fails', async () => {
       const response = await request(app).delete(`/boards/${boardID}`).set('authorization', `Bearer ${token}`);
 
       expect(response.statusCode).toEqual(400);
     });
 
-    test('should return 401 if token is missing', async () => {
+    test('Should return 401 if token is missing', async () => {
       const response = await request(app).delete(`/boards/${boardID}`);
 
       expect(response.statusCode).toEqual(401);
       expect(response.body).toHaveProperty('err', 'authentication missing');
     });
 
-    test('should return 403 if token invalid', async () => {
+    test('Should return 403 if token invalid', async () => {
       const response = await request(app).delete(`/boards/${boardID}`).set('authorization', `Bearer invalidToken`);
 
       expect(response.statusCode).toEqual(403);
       expect(response.body).toHaveProperty('err', 'fail validating token');
     });
 
-    test('should return 400 if board not exist', async () => {
+    test('Should return 400 if board not exist', async () => {
       await BoardModel.deleteOne({ _id: boardID });
       const response = await request(app).delete(`/boards/${boardID}`).set('authorization', `Bearer ${token}`);
 
@@ -139,7 +139,7 @@ describe('board tests', () => {
       user = await UserModel.findOne({ email: 'test@mail.com' });
     });
 
-    test('should return array of boards', async () => {
+    test('Should return array of boards', async () => {
       const response = await request(app).get(`/boards/getMyBoards`).set('authorization', `Bearer ${token}`);
 
       expect(response.status).toEqual(200);
@@ -147,7 +147,7 @@ describe('board tests', () => {
       expect(response.body.length).toBe(2);
     });
 
-    test('should return only board test 2', async () => {
+    test('Should return only board test 2', async () => {
       const response = await request(app).get(`/boards/getMyBoards`).set('authorization', `Bearer ${token}`).query({ s: 'board test 2' });
 
       expect(response.status).toEqual(200);
@@ -155,14 +155,14 @@ describe('board tests', () => {
       expect(response.body.length).toBe(1);
     });
 
-    test('should return 401 if token is missing', async () => {
+    test('Should return 401 if token is missing', async () => {
       const response = await request(app).get(`/boards/getMyBoards`);
 
       expect(response.statusCode).toEqual(401);
       expect(response.body).toHaveProperty('err', 'authentication missing');
     });
 
-    test('should return 403 if token invalid', async () => {
+    test('Should return 403 if token invalid', async () => {
       const response = await request(app).get(`/boards/getMyBoards`).set('authorization', `Bearer invalidToken`);
 
       expect(response.statusCode).toEqual(403);
@@ -192,7 +192,7 @@ describe('board tests', () => {
       tokenTeamLeader = response.body.accessToken;
     });
 
-    test('should return array of team members with our boards', async () => {
+    test('Should return array of team members with our boards', async () => {
       const response = await request(app).get('/boards/getAllTeamBoards').set('authorization', `Bearer ${tokenTeamLeader}`);
 
       expect(response.statusCode).toEqual(200);
@@ -202,39 +202,83 @@ describe('board tests', () => {
       expect(response.body[1].boards.length).toEqual(1);
     });
 
-    test('should return only one board of team leader', async () => {
+    test('Should return only one board of team leader', async () => {
       const response = await request(app)
         .get('/boards/getAllTeamBoards')
         .set('authorization', `Bearer ${tokenTeamLeader}`)
         .query({ s: 'board team leader' });
 
-        expect(response.statusCode).toEqual(200);
-        expect(response.body[0]).toHaveProperty('name', 'test');
-        expect(response.body[0].boards.length).toEqual(0);
-        expect(response.body[1]).toHaveProperty('name', 'team leader');
-        expect(response.body[1].boards.length).toEqual(1);
+      expect(response.statusCode).toEqual(200);
+      expect(response.body[0]).toHaveProperty('name', 'test');
+      expect(response.body[0].boards.length).toEqual(0);
+      expect(response.body[1]).toHaveProperty('name', 'team leader');
+      expect(response.body[1].boards.length).toEqual(1);
     });
 
-    test('should return 401 if token is missing', async () => {
+    test('Should return 401 if token is missing', async () => {
       const response = await request(app).get(`/boards/getAllTeamBoards`);
 
       expect(response.statusCode).toEqual(401);
       expect(response.body).toHaveProperty('err', 'authentication missing');
     });
 
-    test('should return 403 if token invalid', async () => {
+    test('Should return 403 if token invalid', async () => {
       const response = await request(app).get(`/boards/getAllTeamBoards`).set('authorization', `Bearer invalidToken`);
 
       expect(response.statusCode).toEqual(403);
       expect(response.body).toHaveProperty('err', 'fail validating token');
     });
 
-    test('should return 400 if team not exist', async () => {
+    test('Should return 400 if team not exist', async () => {
       const teamLeader = await UserModel.findOne({ email: 'teamLeader@mail.com' });
       await TeamModel.deleteOne({ team_leader_id: teamLeader?._id });
       const response = await request(app).get('/boards/getAllTeamBoards').set('authorization', `Bearer ${tokenTeamLeader}`);
 
       expect(response.statusCode).toEqual(400);
+    });
+  });
+
+  describe('edit board test', () => {
+    let token: string;
+    let boardID: string;
+    beforeAll(async () => {
+      await UserModel.deleteMany({});
+      await BoardModel.deleteMany({});
+      const response = await request(app).post('/register').send(testUser);
+      token = response.body.accessToken;
+      const resBoard = await request(app).post('/boards').set('authorization', `Bearer ${token}`).send({ name: 'board test' });
+      boardID = resBoard?.body._id;
+      const user = await UserModel.findOne({ email: 'test@mail.com' });
+    });
+
+    test('Should return 200 if board is changed successfully', async () => {
+      const response = await request(app)
+        .put(`/boards/${boardID}`)
+        .set('authorization', `Bearer ${token}`)
+        .send({ name: 'edited board name' });
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.modifiedCount).toBe(1);
+    });
+
+    test("Should return 404 f don't send a boardID", async () => {
+      const response = await request(app).put(`/boards`).set('authorization', `Bearer ${token}`).send({ name: 'edited board name' });
+
+      expect(response.statusCode).toEqual(404);
+    });
+
+    test('Should return 401 if token is missing', async () => {
+      const response = await request(app).put(`/boards/${boardID}`);
+
+      expect(response.statusCode).toEqual(401);
+      expect(response.body).toHaveProperty('err', 'authentication missing');
+    });
+
+    test('Should return 403 if token invalid', async () => {
+      const response = await request(app).put(`/boards/${boardID}`).set('authorization', `Bearer invalidToken`);
+
+      expect(response.statusCode).toEqual(403);
+      expect(response.body).toHaveProperty('err', 'fail validating token');
     });
   });
 });

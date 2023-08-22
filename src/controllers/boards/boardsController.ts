@@ -135,6 +135,7 @@ const editBoard = async (req: Request, res: Response) => {
   }
   try {
     const boardID = req.params.boardID;
+    if (!boardID) return res.sendStatus(400);
     const update = await BoardModel.updateOne({ _id: boardID }, req.body);
 
     res.json(update);
@@ -147,7 +148,7 @@ const editBoard = async (req: Request, res: Response) => {
 const deleteBoard = async (req: Request, res: Response) => {
   try {
     const boardID = req.params.boardID;
-    if (!boardID)  return res.sendStatus(400);
+    if (!boardID) return res.sendStatus(400);
     let board = await BoardModel.findOne({ _id: boardID });
     if (!board) return res.sendStatus(400);
     if (board.user_id !== req.tokenData._id) {
