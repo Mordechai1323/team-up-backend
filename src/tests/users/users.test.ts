@@ -101,4 +101,54 @@ describe('myInfo tests', () => {
   });
 });
 
+describe('count tests', () => {
+  let token: string;
+  beforeAll(async () => {
+    await UserModel.deleteMany({});
+    let user1 = new UserModel({
+      email: 'user1@mail.com',
+      password: 'password',
+      role: 'user',
+    });
+    user1 = await user1.save();
+    let user2 = new UserModel({
+      email: 'user2@mail.com',
+      password: 'password',
+      role: 'user',
+    });
+    user2 = await user2.save();
+    let admin = new UserModel({
+      email: 'admin@mail.com',
+      password: 'password',
+      role: 'admin',
+    });
+    admin = await admin.save();
+    token = generateAccessToken(admin._id, admin.role, admin.email);
+  });
+
+  test('should return the total number of users and the total number of pages', async () => {
+    const response = await request(app).get('/users/count').set('authorization', `Bearer ${token}`);
+
+    expect(response.statusCode).toEqual(200);
+    expect(response.body).toHaveProperty('count', 3);
+    expect(response.body).toHaveProperty('pages');
+  });
+
+  test("should return a different number of pages depending on the 'perPage' query parameter", async () => {
+    const response = await request(app).get('/users/count').query({ perPage: 1 }).set('authorization', `Bearer ${token}`);
+
+    expect(response.statusCode).toEqual(200);
+    expect(response.body).toHaveProperty('count', 3);
+    expect(response.body).toHaveProperty('pages', 3);
+
+    const res2 = await request(app).get('/users/count').query({ perPage: 20 }).set('authorization', `Bearer ${token}`);
+
+    expect(res2.statusCode).toEqual(200);
+    expect(res2.body).toHaveProperty('count', 3);
+    expect(res2.body).toHaveProperty('pages', 1);
+
+    expect(res2.body.pages).toBeLessThan(response.body.pages);
+  });
+});
+
 
