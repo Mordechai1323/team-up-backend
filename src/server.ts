@@ -7,7 +7,7 @@ import { corsOptions } from './config/corsOptions';
 import cookieParser from 'cookie-parser';
 import { credentials } from './middleware/credentials';
 import { connectDB } from './config/dbConnect';
-const port = process.env.PORT || 3002;
+
 
 import register from './routes/register';
 import login from './routes/login';
@@ -31,6 +31,7 @@ app.use(cookieParser());
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+
 app.use('/register', register);
 app.use('/login', login);
 app.use('/refresh', refresh);
@@ -43,6 +44,9 @@ app.use('/teams', teams);
 
 const server = http.createServer(app);
 
+const port = process.env.PORT || 3002;
 server.listen(port, () => {
   console.log(`server run on port ${port}`);
 });
+
+export = server
