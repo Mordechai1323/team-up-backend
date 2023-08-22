@@ -284,3 +284,66 @@ describe('Delete user tests', () => {
   });
 });
 
+describe('change role', () => {
+  let token: string;
+  beforeAll(async () => {
+    await UserModel.deleteMany({});
+    let user = new UserModel({
+      email: 'user@mail.com',
+      password: 'password',
+      role: 'user',
+    });
+    user = await user.save();
+    let admin = new UserModel({
+      email: 'admin@mail.com',
+      password: 'password',
+      role: 'admin',
+    });
+    admin = await admin.save();
+    token = generateAccessToken(admin._id, admin.role, admin.email);
+  });
+
+  test('Should return 400 if user_id or role is not provided', async () => {
+    const resWithoutQuery = await request(app).patch('/users/changeRole').set('authorization', `Bearer ${token}`);
+    expect(resWithoutQuery.status).toBe(400);
+    expect(resWithoutQuery.body.err).toBe('user_id and role are required parameters');
+
+    const user = await UserModel.findOne({ email: 'admin@mail.com' });
+    const resWithUserID = await request(app)
+      .patch('/users/changeRole')
+      .query({ user_id: user?.id })
+      .set('authorization', `Bearer ${token}`);
+    expect(resWithUserID.status).toBe(400);
+    expect(resWithUserID.body.err).toBe('user_id and role are required parameters');
+
+    const resWithUserRole = await request(app).patch('/users/changeRole').query({ role: 'admin' }).set('authorization', `Bearer ${token}`);
+    expect(resWithUserRole.status).toBe(400);
+    expect(resWithUserRole.body.err).toBe('user_id and role are required parameters');
+  });
+
+  test('Should return 401 if you try to change yourself', async () => {
+    let admin = await UserModel.findOne({ email: 'admin@mail.com' });
+    let res = await request(app)
+      .patch('/users/changeRole')
+      .set('authorization', token)
+      .query({ user_id: admin?.id, role: 'user' })
+      .set('authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(401);
+    expect(res.body.err).toBe('You try to change yourself or the super admin');
+  });
+
+  test('Should return 200 and update role if the request is valid', async () => {
+    const user = await UserModel.findOne({ email: 'user@mail.com' });
+
+    let res = await request(app)
+      .patch('/users/changeRole')
+      .query({ user_id: user?.id, role: 'admin' })
+      .set('authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.modifiedCount).toEqual(1);
+    const updateUser = await UserModel.findOne({ email: 'user@mail.com' });
+    expect(updateUser?.role).toBe('admin');
+  });
+});
