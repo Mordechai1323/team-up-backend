@@ -43,6 +43,7 @@ describe('allUsers tests', () => {
 
   test('should return a list of users if request is authorized', async () => {
     const response = await request(app).get('/users/allUsers').set('authorization', `Bearer ${token}`);
+    
     expect(response.status).toEqual(200);
     expect(Array.isArray(response.body)).toBe(true);
     expect(response.body.length).toBe(3);
