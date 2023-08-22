@@ -11,7 +11,9 @@ interface MyRequest extends Request {
   };
 }
 
-const getAllTeamBoards = async (req: Request, res: Response) => {
+const getAllTeamBoards = async (req: MyRequest, res: Response) => {
+  let search = req.query.s;
+  let searchExp = new RegExp(search, 'i');
   try {
     const team = await TeamModel.findOne({ team_leader_id: req.tokenData._id });
     if (!team) return res.sendStatus(400);
@@ -19,7 +21,7 @@ const getAllTeamBoards = async (req: Request, res: Response) => {
       team.team_members.map(async (teamMemberId: string) => {
         const user = await UserModel.findOne({ _id: teamMemberId });
         if (user) {
-          const boards = await BoardModel.find({ user_id: user._id });
+          const boards = await BoardModel.find({ $and: [{ user_id: user._id }, { name: searchExp }] });
           return { name: user.name, boards };
         }
       })
