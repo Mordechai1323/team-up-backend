@@ -13,7 +13,7 @@ const getTeam = async (req: Request, res: Response) => {
       )
     );
 
-    res.json(teamMembers);
+    res.json({ team, teamMembers });
   } catch (err) {
     logger.error(err);
     res.status(502).json(err);
@@ -26,7 +26,6 @@ const createTeam = async (req: Request, res: Response) => {
     return res.status(400).json(validBody.error.details);
   }
   try {
-    const team = new TeamModel({ name: req.body.name });
     let usersNotFound = [];
     let teamMembers = [];
     for (const teamMemberEmail of req.body.team_members) {
@@ -34,21 +33,23 @@ const createTeam = async (req: Request, res: Response) => {
       if (!teamMember) usersNotFound.push(teamMemberEmail);
       else teamMembers.push(teamMember._id);
     }
-    team.team_members = teamMembers;
-    team.team_leader_id = req.tokenData._id;
-    await team.save();
-
+    if (usersNotFound.length > 0) {
+      const err = { err: `Some or all of the team members were not found, The users not found ${usersNotFound} `, usersNotFound };
+      return res.status(400).json(err);
+    }
     const user = await UserModel.findOne({ _id: req.tokenData._id });
     if (!user) return res.sendStatus(400);
     user.role = 'team_leader';
     await user.save();
-    const accessToken = generateAccessToken(user._id, user.role, user.email);
-    if (usersNotFound.length > 0) {
-      const err = { err: `Some or all of the team members were not found, The users not found ${usersNotFound} ` };
-      return res.status(400).json({ team, accessToken, err });
-    }
 
-    return res.json({ team, accessToken });
+    const team = new TeamModel({ name: req.body.name });
+    team.team_members = teamMembers;
+    team.team_leader_id = req.tokenData._id;
+    await team.save();
+
+    const accessToken = generateAccessToken(user._id, user.role, user.email);
+
+    return res.status(201).json({ team, accessToken, name: user.name });
   } catch (err) {
     logger.error(err);
     res.status(502).json({ err });
@@ -108,7 +109,7 @@ const deleteTeam = async (req: Request, res: Response) => {
     user.role = 'user';
     await user.save();
     const accessToken = generateAccessToken(user._id, user.role, user.email);
-    return res.json({ team, accessToken });
+    return res.json({ team, accessToken, name: user.name });
   } catch (err) {
     logger.error(err);
     res.status(502).json({ err });
