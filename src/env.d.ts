@@ -1,6 +1,7 @@
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
+      MODE_ENV: string
       USER_DB: string;
       PASS_DB: string;
       ACCESS_TOKEN_SECRET: string;
