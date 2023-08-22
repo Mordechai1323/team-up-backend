@@ -33,6 +33,10 @@ const groupSchema = new mongoose.Schema({
           name: { type: String, default: '' },
           style: { type: String, default: 'rgb(121, 126, 147)' },
         },
+        date_created: {
+          type: Date,
+          default: Date.now,
+        },
       },
     ],
   },
@@ -68,7 +72,6 @@ export const validateEditGroup = (reqBody: { name: string }) => {
 
   return joiSchema.validate(reqBody);
 };
-
 
 export const validateTask = (reqBody: { name: string }) => {
   const joiSchema = Joi.object({
