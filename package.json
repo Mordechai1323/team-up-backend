@@ -9,7 +9,8 @@
     "dev": "npx tsc && node dist/src/server.js",
     "test": "tsc && jest --detectOpenHandles --forceExit",
     "testRegister": "tsc && jest --detectOpenHandles --forceExit --runInBand ./dist/src/tests/users/register.test.js",
-    "testBoard": "tsc && jest --detectOpenHandles --forceExit --runInBand ./dist/src/tests/boards/board.test.js"
+    "testBoards": "tsc && jest --detectOpenHandles --forceExit --runInBand ./dist/src/tests/boards/boards.test.js",
+    "testGroups": "tsc && jest --detectOpenHandles --forceExit --runInBand ./dist/src/tests/boards/groups.test.js"
   },
   "author": "",
   "license": "ISC",
