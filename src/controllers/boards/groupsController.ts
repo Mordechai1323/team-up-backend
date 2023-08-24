@@ -196,6 +196,7 @@ const editTask = async (req: Request, res: Response) => {
   try {
     const groupID = req.query.groupID;
     const taskID = req.query.taskID;
+    if (!groupID || !taskID) return res.sendStatus(400);
     const group = await GroupModel.findOne({ _id: groupID });
     if (!group) return res.sendStatus(400);
     group.tasks.forEach((task) => {
@@ -216,7 +217,7 @@ const deleteTask = async (req: Request, res: Response) => {
     const taskID = req.query.taskID;
     if (!groupID || !taskID) return res.sendStatus(400);
     const group = await GroupModel.findOne({ _id: groupID });
-    if (!group) return res.sendStatus(400)
+    if (!group) return res.sendStatus(400);
     group.tasks = group?.tasks?.filter((task) => task?.id !== taskID);
     await group.save();
 
