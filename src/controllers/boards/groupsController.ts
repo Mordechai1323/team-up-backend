@@ -29,7 +29,6 @@ const getGroups = async (req: MyRequest, res: Response) => {
   }
 };
 
-
 const addGroup = async (req: Request, res: Response) => {
   const boardID = req.query.boardID;
   if (!boardID) return res.sendStatus(400);
@@ -46,6 +45,7 @@ const addGroup = async (req: Request, res: Response) => {
 
 const changeIsOpen = async (req: Request, res: Response) => {
   const groupID = req.query.groupID;
+  if (!groupID) return res.sendStatus(400);
   try {
     const group = await GroupModel.findOne({ _id: groupID });
     if (!group) return res.sendStatus(400);
@@ -65,6 +65,7 @@ const editGroup = async (req: Request, res: Response) => {
     return res.status(400).json(validBody.error.details);
   }
   const groupID = req.query.groupID;
+  if (!groupID) return res.sendStatus(400);
   try {
     const groups = await GroupModel.updateOne({ _id: groupID }, req.body);
 
@@ -226,7 +227,6 @@ const deleteTask = async (req: Request, res: Response) => {
 
 export default {
   getGroups,
-  searchGroups,
   addGroup,
   changeIsOpen,
   editGroup,

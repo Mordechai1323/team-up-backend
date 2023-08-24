@@ -10,7 +10,6 @@ router
   .put(auth, groupsController.editGroup)
   .delete(auth, groupsController.deleteGroup);
 
-router.route('/searchGroups').get(auth, groupsController.searchGroups);
 router.route('/changeIsOpen').post(auth, groupsController.changeIsOpen);
 
 router.route('/tasks/addTask').post(auth, groupsController.addTask);

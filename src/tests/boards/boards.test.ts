@@ -18,6 +18,7 @@ afterAll(async () => {
 });
 
 describe('board tests', () => {
+  
   describe('add board test', () => {
     let token: string;
     let user: any;
@@ -436,3 +437,4 @@ describe('board tests', () => {
     });
   });
 });
+  

@@ -3,6 +3,7 @@ import app from '../../server';
 import mongoose from 'mongoose';
 import { UserModel } from '../../models/userModel';
 import { BoardModel } from '../../models/boardModel';
+import { GroupModel } from '../../models/groupModel';
 
 const testUser = {
   name: 'test',
@@ -23,6 +24,7 @@ describe('groups tests', () => {
     beforeAll(async () => {
       await UserModel.deleteMany({});
       await BoardModel.deleteMany({});
+      await GroupModel.deleteMany();
       const response = await request(app).post('/register').send(testUser);
       token = response.body.accessToken;
       const resBoard = await request(app).post('/boards').set('authorization', `Bearer ${token}`).send({ name: 'board test' });
@@ -38,7 +40,7 @@ describe('groups tests', () => {
       expect(response.body).toHaveProperty('board_id', boardID);
     });
 
-    test('Should return 400 if not provided boardID', async () => {
+    test('Should return 400 if  boardID is missing', async () => {
       const response = await request(app).post('/groups').set('authorization', `Bearer ${token}`);
 
       expect(response.statusCode).toEqual(400);
@@ -65,6 +67,7 @@ describe('groups tests', () => {
     beforeAll(async () => {
       await UserModel.deleteMany({});
       await BoardModel.deleteMany({});
+      await GroupModel.deleteMany();
       const response = await request(app).post('/register').send(testUser);
       token = response.body.accessToken;
       const resBoard = await request(app).post('/boards').set('authorization', `Bearer ${token}`).send({ name: 'board test' });
@@ -80,7 +83,7 @@ describe('groups tests', () => {
       expect(response.body).toHaveProperty('deletedCount', 1);
     });
 
-    test('Should return 400 if not provided groupID', async () => {
+    test('Should return 400 if groupID is missing', async () => {
       const response = await request(app).delete(`/groups`).set('authorization', `Bearer ${token}`);
 
       expect(response.statusCode).toEqual(400);
@@ -107,6 +110,7 @@ describe('groups tests', () => {
     beforeAll(async () => {
       await UserModel.deleteMany({});
       await BoardModel.deleteMany({});
+      await GroupModel.deleteMany();
       const response = await request(app).post('/register').send(testUser);
       token = response.body.accessToken;
       const resBoard = await request(app).post('/boards').set('authorization', `Bearer ${token}`).send({ name: 'board test' });
@@ -130,7 +134,7 @@ describe('groups tests', () => {
       expect(response.body.length).toBe(1);
     });
 
-    test('Should return 400 if not provided boardID', async () => {
+    test('Should return 400 if boardID is missing', async () => {
       const response = await request(app).get(`/groups`).set('authorization', `Bearer ${token}`);
 
       expect(response.statusCode).toEqual(400);
@@ -145,6 +149,67 @@ describe('groups tests', () => {
 
     test('Should return 403 if token invalid', async () => {
       const response = await request(app).get(`/groups`).set('authorization', `Bearer invalidToken`).query({ boardID });
+
+      expect(response.statusCode).toEqual(403);
+      expect(response.body).toHaveProperty('err', 'fail validating token');
+    });
+  });
+
+  describe('edit group test', () => {
+    let token: string;
+    let groupID: string;
+    beforeAll(async () => {
+      await UserModel.deleteMany({});
+      await BoardModel.deleteMany({});
+      await GroupModel.deleteMany();
+      const response = await request(app).post('/register').send(testUser);
+      token = response.body.accessToken;
+      const resBoard = await request(app).post('/boards').set('authorization', `Bearer ${token}`).send({ name: 'board test' });
+      const boardID = resBoard.body._id;
+      const resAddGroup = await request(app).post('/groups').set('authorization', `Bearer ${token}`).query({ boardID });
+      groupID = resAddGroup?.body._id;
+    });
+
+    test('Should return 200 if board is changed successfully', async () => {
+      const response = await request(app)
+        .put(`/groups`)
+        .set('authorization', `Bearer ${token}`)
+        .query({ groupID })
+        .send({ name: 'edited group name' });
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.body.modifiedCount).toBe(1);
+    });
+
+    test('Should return 400 if name is missing', async () => {
+      const response = await request(app).post('/boards').set('authorization', `Bearer ${token}`);
+
+      expect(response.statusCode).toEqual(400);
+      expect(response.body).toEqual([
+        {
+          message: '"name" is required',
+          path: ['name'],
+          type: 'any.required',
+          context: { label: 'name', key: 'name' },
+        },
+      ]);
+    });
+
+    test('Should return 400 if groupID is missing', async () => {
+      const response = await request(app).put(`/groups`).set('authorization', `Bearer ${token}`);
+
+      expect(response.statusCode).toEqual(400);
+    });
+
+    test('Should return 401 if token is missing', async () => {
+      const response = await request(app).put(`/groups`).query({ groupID });
+
+      expect(response.statusCode).toEqual(401);
+      expect(response.body).toHaveProperty('err', 'authentication missing');
+    });
+
+    test('Should return 403 if token invalid', async () => {
+      const response = await request(app).put(`/groups`).set('authorization', `Bearer invalidToken`).query({ groupID });
 
       expect(response.statusCode).toEqual(403);
       expect(response.body).toHaveProperty('err', 'fail validating token');
