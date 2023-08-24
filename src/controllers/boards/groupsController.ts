@@ -214,8 +214,9 @@ const deleteTask = async (req: Request, res: Response) => {
   try {
     const groupID = req.query.groupID;
     const taskID = req.query.taskID;
+    if (!groupID || !taskID) return res.sendStatus(400);
     const group = await GroupModel.findOne({ _id: groupID });
-    if (!group) return res.status(400).json({ err: 'group not found' });
+    if (!group) return res.sendStatus(400)
     group.tasks = group?.tasks?.filter((task) => task?.id !== taskID);
     await group.save();
 
