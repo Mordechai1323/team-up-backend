@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import app from '../../server';
 import { UserModel } from '../../models/userModel';
 import { BoardModel } from '../../models/boardModel';
+import { TeamModel } from '../../models/teamModel';
 
 const testUser = {
   name: 'test',
@@ -13,6 +14,10 @@ const test1User = {
   name: 'test1',
   email: 'test1@mail.com',
   password: '******',
+};
+const team = {
+  team_members: ['test@mail.com', 'test1@mail.com'],
+  name: 'test team',
 };
 
 afterAll(async () => {
@@ -25,13 +30,10 @@ describe('teams tests', () => {
   describe('create team ', () => {
     let token: string;
     let user: any;
-    const team = {
-      team_members: ['test@mail.com', 'test1@mail.com'],
-      name: 'test team',
-    };
     beforeAll(async () => {
       await UserModel.deleteMany({});
       await BoardModel.deleteMany({});
+      await TeamModel.deleteMany({});
       const resUer = await request(app).post('/register').send(testUser);
       const resUer1 = await request(app).post('/register').send(test1User);
       token = resUer.body.accessToken;
@@ -64,5 +66,50 @@ describe('teams tests', () => {
       await UserModel.deleteOne({ _id: user?._id });
       const response = await request(app).post('/teams').set('authorization', `Bearer ${token}`).send(team).expect(400);
     });
+
+    test('Should return 401 if token is missing', async () => {
+      const response = await request(app).post('/teams').send(team);
+
+      expect(response.statusCode).toEqual(401);
+      expect(response.body).toHaveProperty('err', 'authentication missing');
+    });
+
+    test('Should return 403 if token invalid', async () => {
+      const response = await request(app).post('/teams').set('authorization', `Bearer invalidToken`).send(team);
+
+      expect(response.statusCode).toEqual(403);
+      expect(response.body).toHaveProperty('err', 'fail validating token');
+    });
   });
+
+  describe('delete team ', () => {
+    let token: string;
+    let user: any;
+    beforeAll(async () => {
+      await UserModel.deleteMany({});
+      await BoardModel.deleteMany({});
+      await TeamModel.deleteMany({});
+      const resUer = await request(app).post('/register').send(testUser);
+      const resUer1 = await request(app).post('/register').send(test1User);
+      token = resUer.body.accessToken;
+      const token1 = resUer1.body.accessToken;
+      await request(app).post('/boards').set('authorization', `Bearer ${token}`).send({ name: 'board test' });
+      await request(app).post('/boards').set('authorization', `Bearer ${token1}`).send({ name: 'board test1' });
+      await request(app).post('/teams').set('authorization', `Bearer ${token}`).send(team);
+      user = await UserModel.findOne({ email: 'test@mail.com' });
+    });
+
+    test('Should return 200 if team deleted', async () => {
+      const response = await request(app).delete('/teams').set('authorization', `Bearer ${token}`);
+
+      expect(response.status).toEqual(200);
+    });
+
+    test('Should return 400 if user not exist', async () => {
+      await request(app).post('/teams').set('authorization', `Bearer ${token}`).send(team);
+      await UserModel.deleteOne({ _id: user?._id });
+      await request(app).delete('/teams').set('authorization', `Bearer ${token}`).expect(400);
+    });
+  });
+
 });
