@@ -96,6 +96,7 @@ const addTask = async (req: Request, res: Response) => {
     return res.status(400).json(validBody.error.details);
   }
   const groupID = req.query.groupID;
+  if (!groupID) return res.sendStatus(400);
   try {
     const group = await GroupModel.findOne({ _id: groupID });
     if (!group) return res.sendStatus(400);
@@ -106,7 +107,7 @@ const addTask = async (req: Request, res: Response) => {
     });
     await group.save();
 
-    return res.json(group);
+    return res.status(201).json(group);
   } catch (err) {
     logger.error(err);
     res.status(502).json({ err });
