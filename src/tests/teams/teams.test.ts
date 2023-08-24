@@ -27,6 +27,7 @@ afterAll(async () => {
 });
 
 describe('teams tests', () => {
+  
   describe('create team ', () => {
     let token: string;
     let user: any;
@@ -111,6 +112,20 @@ describe('teams tests', () => {
       await UserModel.deleteOne({ _id: user?._id });
       await request(app).delete('/teams').set('authorization', `Bearer ${token}`).expect(400);
     });
+
+    test('Should return 401 if token is missing', async () => {
+      const response = await request(app).delete('/teams');
+
+      expect(response.statusCode).toEqual(401);
+      expect(response.body).toHaveProperty('err', 'authentication missing');
+    });
+
+    test('Should return 403 if token invalid', async () => {
+      const response = await request(app).delete('/teams').set('authorization', `Bearer invalidToken`);
+
+      expect(response.statusCode).toEqual(403);
+      expect(response.body).toHaveProperty('err', 'fail validating token');
+    });
   });
 
   describe('get team test', () => {
@@ -142,6 +157,20 @@ describe('teams tests', () => {
       const response = await request(app).get('/teams').set('authorization', `Bearer ${token}`);
 
       expect(response.status).toEqual(400);
+    });
+
+    test('Should return 401 if token is missing', async () => {
+      const response = await request(app).get('/teams');
+
+      expect(response.statusCode).toEqual(401);
+      expect(response.body).toHaveProperty('err', 'authentication missing');
+    });
+
+    test('Should return 403 if token invalid', async () => {
+      const response = await request(app).get('/teams').set('authorization', `Bearer invalidToken`);
+
+      expect(response.statusCode).toEqual(403);
+      expect(response.body).toHaveProperty('err', 'fail validating token');
     });
   });
 
@@ -204,6 +233,100 @@ describe('teams tests', () => {
         .send({ team_member: 'test3@mail.com' });
 
       expect(response.status).toEqual(400);
+    });
+
+    test('Should return 401 if token is missing', async () => {
+      const response = await request(app).post('/teams/addTeamMember')
+
+      expect(response.statusCode).toEqual(401);
+      expect(response.body).toHaveProperty('err', 'authentication missing');
+    });
+
+    test('Should return 403 if token invalid', async () => {
+      const response = await request(app)
+        .post('/teams/addTeamMember')
+        .set('authorization', `Bearer invalidToken`)
+        .send({ team_member: 'test3@mail.com' });
+
+      expect(response.statusCode).toEqual(403);
+      expect(response.body).toHaveProperty('err', 'fail validating token');
+    });
+  });
+
+  describe('delete team member test', () => {
+    let token: string;
+    beforeEach(async () => {
+      await UserModel.deleteMany({});
+      await BoardModel.deleteMany({});
+      await TeamModel.deleteMany({});
+      const resUer = await request(app).post('/register').send(testUser);
+      const resUer1 = await request(app).post('/register').send(test1User);
+      token = resUer.body.accessToken;
+      const token1 = resUer1.body.accessToken;
+      await request(app).post('/boards').set('authorization', `Bearer ${token}`).send({ name: 'board test' });
+      await request(app).post('/boards').set('authorization', `Bearer ${token1}`).send({ name: 'board test1' });
+      await request(app).post('/teams').set('authorization', `Bearer ${token}`).send(team);
+    });
+
+    test('Should return 200 and deleted the user', async () => {
+      const response = await request(app)
+        .post('/teams/removeTeamMember')
+        .set('authorization', `Bearer ${token}`)
+        .send({ team_member: 'test1@mail.com' });
+
+      expect(response.status).toEqual(200);
+      expect(response.body.team_members.length).toEqual(1);
+    });
+
+    test('Should return 400 if team member is missing', async () => {
+      const response = await request(app).post('/teams/removeTeamMember').set('authorization', `Bearer ${token}`);
+
+      expect(response.statusCode).toEqual(400);
+      expect(response.body).toEqual([
+        {
+          message: '"team_member" is required',
+          path: ['team_member'],
+          type: 'any.required',
+          context: { label: 'team_member', key: 'team_member' },
+        },
+      ]);
+    });
+
+    test('Should return 400 if user not exist', async () => {
+      await UserModel.deleteMany({});
+      const response = await request(app)
+        .post('/teams/removeTeamMember')
+        .set('authorization', `Bearer ${token}`)
+        .send({ team_member: 'test1@mail.com' });
+
+      expect(response.status).toEqual(400);
+    });
+
+    test('Should return 400 if team not exist', async () => {
+      await TeamModel.deleteMany({});
+      const response = await request(app)
+        .post('/teams/removeTeamMember')
+        .set('authorization', `Bearer ${token}`)
+        .send({ team_member: 'test1@mail.com' });
+
+      expect(response.status).toEqual(400);
+    });
+
+    test('Should return 401 if token is missing', async () => {
+      const response = await request(app).post('/teams/removeTeamMember').send({ team_member: 'test1@mail.com' });
+
+      expect(response.statusCode).toEqual(401);
+      expect(response.body).toHaveProperty('err', 'authentication missing');
+    });
+
+    test('Should return 403 if token invalid', async () => {
+      const response = await request(app)
+        .post('/teams/removeTeamMember')
+        .set('authorization', `Bearer invalidToken`)
+        .send({ team_member: 'test1@mail.com' });
+
+      expect(response.statusCode).toEqual(403);
+      expect(response.body).toHaveProperty('err', 'fail validating token');
     });
   });
 });
