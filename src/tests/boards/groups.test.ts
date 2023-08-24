@@ -471,4 +471,78 @@ describe('tasks tests', () => {
     });
   });
 
+  describe('change status test', () => {
+    let token: string;
+    let groupID: string;
+    let taskID: string;
+    const statusTest = { name: 'status test', style: 'rgb(121, 126, 147)' };
+    beforeAll(async () => {
+      await UserModel.deleteMany({});
+      await BoardModel.deleteMany({});
+      await GroupModel.deleteMany();
+      const response = await request(app).post('/register').send(testUser);
+      token = response.body.accessToken;
+      const resBoard = await request(app).post('/boards').set('authorization', `Bearer ${token}`).send({ name: 'board test' });
+      const boardID = resBoard.body._id;
+      const resAddGroup = await request(app).post('/groups').set('authorization', `Bearer ${token}`).query({ boardID });
+      groupID = resAddGroup?.body._id;
+      const resAddTask = await request(app)
+        .post('/groups/tasks/addTask')
+        .set('authorization', `Bearer ${token}`)
+        .query({ groupID })
+        .send({ name: 'New task' });
+      taskID = resAddTask.body.tasks[0]._id;
+    });
+
+    test('should return 200 if status changed', async () => {
+      const response = await request(app)
+        .put(`/groups/tasks/changeStatus`)
+        .set('authorization', `Bearer ${token}`)
+        .query({ groupID, taskID })
+        .send(statusTest);
+
+      expect(response.status).toEqual(200);
+      expect(response.body.tasks[0].status.name).toEqual('status test');
+      expect(response.body.tasks[0].status.style).toEqual('rgb(121, 126, 147)');
+    });
+
+    test('Should return 400 if groupID or taskID is missing', async () => {
+      await request(app).put(`/groups/tasks/changeStatus`).set('authorization', `Bearer ${token}`).query({ groupID }).expect(400);
+      await request(app).put(`/groups/tasks/changeStatus`).set('authorization', `Bearer ${token}`).query({ taskID }).expect(400);
+    });
+
+    test('Should return 400 if name and style is missing', async () => {
+      const response = await request(app)
+        .put(`/groups/tasks/changeStatus`)
+        .set('authorization', `Bearer ${token}`)
+        .query({ groupID, taskID });
+
+      expect(response.statusCode).toEqual(400);
+      expect(response.body).toEqual([
+        {
+          message: '"name" is required',
+          path: ['name'],
+          type: 'any.required',
+          context: { label: 'name', key: 'name' },
+        },
+      ]);
+    });
+
+    test('Should return 401 if token is missing', async () => {
+      const response = await request(app).put(`/groups/tasks/changeStatus`).query({ groupID, taskID });
+
+      expect(response.statusCode).toEqual(401);
+      expect(response.body).toHaveProperty('err', 'authentication missing');
+    });
+
+    test('Should return 403 if token invalid', async () => {
+      const response = await request(app)
+        .put(`/groups/tasks/changeStatus`)
+        .set('authorization', `Bearer invalidToken`)
+        .query({ groupID, taskID });
+
+      expect(response.statusCode).toEqual(403);
+      expect(response.body).toHaveProperty('err', 'fail validating token');
+    });
+  });
 });

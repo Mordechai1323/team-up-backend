@@ -121,6 +121,7 @@ const addInCare = async (req: Request, res: Response) => {
   }
   const groupID = req.query.groupID;
   const taskID = req.query.taskID;
+  if (!groupID || !taskID) return res.sendStatus(400);
   try {
     const group = await GroupModel.findOne({ _id: groupID });
     if (!group) return res.sendStatus(400);
@@ -145,6 +146,7 @@ const deleteInCare = async (req: Request, res: Response) => {
   }
   const groupID = req.query.groupID;
   const taskID = req.query.taskID;
+  if (!groupID || !taskID) return res.sendStatus(400);
   try {
     const group = await GroupModel.findOne({ _id: groupID });
     if (!group) return res.sendStatus(400);
@@ -170,6 +172,7 @@ const changeStatus = async (req: Request, res: Response) => {
   }
   const groupID = req.query.groupID;
   const taskID = req.query.taskID;
+  if (!groupID || !taskID) return res.sendStatus(400);
   try {
     const group = await GroupModel.findOne({ _id: groupID });
     if (!group) return res.sendStatus(400);
@@ -181,7 +184,7 @@ const changeStatus = async (req: Request, res: Response) => {
     });
     await group.save();
 
-    return res.status(201).json(group);
+    return res.status(200).json(group);
   } catch (err) {
     logger.error(err);
     res.status(502).json({ err });
