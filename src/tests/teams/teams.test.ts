@@ -55,8 +55,8 @@ describe('teams tests', () => {
     });
 
     test('Should return 400 if some or all of the team members were not found', async () => {
-      team.team_members.push('notFound@mail.com');
-      const response = await request(app).post('/teams').set('authorization', `Bearer ${token}`).send(team);
+      const tempTeam = { ...team, team_members: ['test@mail.com', 'test1@mail.com', 'notFound@mail.com'] };
+      const response = await request(app).post('/teams').set('authorization', `Bearer ${token}`).send(tempTeam);
 
       expect(response.status).toEqual(400);
       expect(response.body.usersNotFound).toEqual(['notFound@mail.com']);
@@ -103,6 +103,7 @@ describe('teams tests', () => {
       const response = await request(app).delete('/teams').set('authorization', `Bearer ${token}`);
 
       expect(response.status).toEqual(200);
+      expect(response.body.team.deletedCount).toEqual(1);
     });
 
     test('Should return 400 if user not exist', async () => {
@@ -112,4 +113,35 @@ describe('teams tests', () => {
     });
   });
 
+  describe('get team ', () => {
+    let token: string;
+    beforeAll(async () => {
+      await UserModel.deleteMany({});
+      await BoardModel.deleteMany({});
+      await TeamModel.deleteMany({});
+      const resUer = await request(app).post('/register').send(testUser);
+      const resUer1 = await request(app).post('/register').send(test1User);
+      token = resUer.body.accessToken;
+      const token1 = resUer1.body.accessToken;
+      await request(app).post('/boards').set('authorization', `Bearer ${token}`).send({ name: 'board test' });
+      await request(app).post('/boards').set('authorization', `Bearer ${token1}`).send({ name: 'board test1' });
+      await request(app).post('/teams').set('authorization', `Bearer ${token}`).send(team);
+    });
+
+    test('Should return 200 and ', async () => {
+      const response = await request(app).get('/teams').set('authorization', `Bearer ${token}`);
+
+      expect(response.status).toEqual(200);
+      expect(response.body.team.team_members.length).toEqual(2);
+      expect(response.body.teamMembers[0].name).toEqual('test');
+      expect(response.body.teamMembers[1].name).toEqual('test1');
+    });
+
+    test('Should return 400 if some or all of the team members were not found', async () => {
+      await TeamModel.deleteMany({})
+      const response = await request(app).get('/teams').set('authorization', `Bearer ${token}`)
+
+      expect(response.status).toEqual(400);
+    });
+  });
 });
