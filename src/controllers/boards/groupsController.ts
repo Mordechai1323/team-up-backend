@@ -36,11 +36,12 @@ const searchGroups = async (req: Request, res: Response) => {
 
 const addGroup = async (req: Request, res: Response) => {
   const boardID = req.query.boardID;
+  if (!boardID) return res.sendStatus(400)
   try {
     const group = new GroupModel({ name: 'New Group', board_id: boardID });
     await group.save();
 
-    return res.json(group);
+    return res.status(201).json(group);
   } catch (err) {
     logger.error(err);
     res.status(502).json({ err });
