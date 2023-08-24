@@ -3,11 +3,21 @@ import { GroupModel, validateEditGroup, validateEditStatus, validateTask } from 
 import { validateUserEmail } from '../../models/boardModel';
 import logger from '../../logger/logger.js';
 
+interface MyRequest extends Request {
+  query: {
+    s: string;
+    boardID: string;
+  };
+}
+
 //Groups
-const getGroups = async (req: Request, res: Response) => {
+const getGroups = async (req: MyRequest, res: Response) => {
   const boardID = req.query.boardID;
+  if (!boardID) return res.sendStatus(400);
+  let search = req.query.s;
+  let searchExp = new RegExp(search, 'i');
   try {
-    const groups = await GroupModel.find({ board_id: boardID });
+    const groups = await GroupModel.find({ $and: [{ board_id: boardID }, { name: searchExp }] });
     // if (filterByPerson && tasks?.tasks) {
     //   tasks.tasks = tasks?.tasks?.filter((task) => task?.in_care?.includes(filterByPerson));
     // }
@@ -19,24 +29,10 @@ const getGroups = async (req: Request, res: Response) => {
   }
 };
 
-const searchGroups = async (req: Request, res: Response) => {
-  const boardID = req.query.boardID;
-  const search = String(req.query.s);
-  const searchExp = new RegExp(search, 'i');
-
-  try {
-    let groups = await GroupModel.find({ $and: [{ board_id: boardID }, { name: searchExp }] });
-
-    return res.json(groups);
-  } catch (err) {
-    logger.error(err);
-    res.status(502).json({ err });
-  }
-};
 
 const addGroup = async (req: Request, res: Response) => {
   const boardID = req.query.boardID;
-  if (!boardID) return res.sendStatus(400)
+  if (!boardID) return res.sendStatus(400);
   try {
     const group = new GroupModel({ name: 'New Group', board_id: boardID });
     await group.save();
@@ -81,6 +77,7 @@ const editGroup = async (req: Request, res: Response) => {
 
 const deleteGroup = async (req: Request, res: Response) => {
   const groupID = req.query.groupID;
+  if (!groupID) return res.sendStatus(400);
   try {
     const groups = await GroupModel.deleteOne({ _id: groupID });
 
