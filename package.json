@@ -10,7 +10,8 @@
     "test": "tsc && jest --detectOpenHandles --forceExit",
     "testRegister": "tsc && jest --detectOpenHandles --forceExit --runInBand ./dist/src/tests/users/register.test.js",
     "testBoards": "tsc && jest --detectOpenHandles --forceExit --runInBand ./dist/src/tests/boards/boards.test.js",
-    "testGroups": "tsc && jest --detectOpenHandles --forceExit --runInBand ./dist/src/tests/boards/groups.test.js"
+    "testGroups": "tsc && jest --detectOpenHandles --forceExit --runInBand ./dist/src/tests/boards/groups.test.js",
+    "testTeams": "tsc && jest --detectOpenHandles --forceExit --runInBand ./dist/src/tests/teams/teams.test.js"
   },
   "author": "",
   "license": "ISC",

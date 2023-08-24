@@ -1,6 +1,6 @@
 import request from 'supertest';
-import app from '../../server';
 import mongoose from 'mongoose';
+import app from '../../server';
 import { UserModel, generateAccessToken } from '../../models/userModel';
 
 const user = {

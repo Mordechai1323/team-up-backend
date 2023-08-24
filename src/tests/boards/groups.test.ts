@@ -1,6 +1,6 @@
 import request from 'supertest';
-import app from '../../server';
 import mongoose from 'mongoose';
+import app from '../../server';
 import { UserModel } from '../../models/userModel';
 import { BoardModel } from '../../models/boardModel';
 import { GroupModel } from '../../models/groupModel';
