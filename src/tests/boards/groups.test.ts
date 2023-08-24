@@ -302,8 +302,19 @@ describe('tasks tests', () => {
       ]);
     });
 
-    test('Should return 400 if  group is missing', async () => {
+    test('Should return 400 if group is missing', async () => {
       const response = await request(app).post('/groups/tasks/addTask').set('authorization', `Bearer ${token}`).send({ name: 'New task' });
+
+      expect(response.statusCode).toEqual(400);
+    });
+
+    test('Should return 400 if group not exists', async () => {
+      await GroupModel.deleteOne({ _id: groupID });
+      const response = await request(app)
+        .post('/groups/tasks/addTask')
+        .set('authorization', `Bearer ${token}`)
+        .query({ groupID })
+        .send({ name: 'New task' });
 
       expect(response.statusCode).toEqual(400);
     });
@@ -326,4 +337,6 @@ describe('tasks tests', () => {
       expect(response.body).toHaveProperty('err', 'fail validating token');
     });
   });
+
+
 });
