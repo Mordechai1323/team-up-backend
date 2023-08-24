@@ -215,4 +215,47 @@ describe('groups tests', () => {
       expect(response.body).toHaveProperty('err', 'fail validating token');
     });
   });
+
+  describe('change is open test', () => {
+    let token: string;
+    let groupID: string;
+    beforeAll(async () => {
+      await UserModel.deleteMany({});
+      await BoardModel.deleteMany({});
+      await GroupModel.deleteMany();
+      const response = await request(app).post('/register').send(testUser);
+      token = response.body.accessToken;
+      const resBoard = await request(app).post('/boards').set('authorization', `Bearer ${token}`).send({ name: 'board test' });
+      const boardID = resBoard.body._id;
+      const resAddGroup = await request(app).post('/groups').set('authorization', `Bearer ${token}`).query({ boardID });
+      groupID = resAddGroup?.body._id;
+    });
+
+    test('should return 200 if is open changed', async () => {
+      const response = await request(app).post(`/groups/changeIsOpen`).set('authorization', `Bearer ${token}`).query({ groupID });
+
+      expect(response.status).toEqual(200);
+      expect(response.body.is_open).toEqual(false);
+    });
+
+    test('Should return 400 if groupID is missing', async () => {
+      const response = await request(app).post(`/groups/changeIsOpen`).set('authorization', `Bearer ${token}`);
+
+      expect(response.statusCode).toEqual(400);
+    });
+
+    test('Should return 401 if token is missing', async () => {
+      const response = await request(app).post(`/groups/changeIsOpen`).query({ groupID });
+
+      expect(response.statusCode).toEqual(401);
+      expect(response.body).toHaveProperty('err', 'authentication missing');
+    });
+
+    test('Should return 403 if token invalid', async () => {
+      const response = await request(app).post(`/groups/changeIsOpen`).set('authorization', `Bearer invalidToken`).query({ groupID });
+
+      expect(response.statusCode).toEqual(403);
+      expect(response.body).toHaveProperty('err', 'fail validating token');
+    });
+  });
 });
