@@ -47,24 +47,6 @@ const groupSchema = new mongoose.Schema({
 });
 
 export const GroupModel = mongoose.model<IGroup>('groups', groupSchema);
-
-export const validateGroup = (reqBody: { board_id: string; name: string }) => {
-  const joiSchema = Joi.object({
-    board_id: Joi.string().min(2).max(150).required(),
-    name: Joi.string().min(2).max(150).required(),
-  });
-
-  return joiSchema.validate(reqBody);
-};
-
-export const validateGroupId = (reqBody: { board_id: string }) => {
-  const joiSchema = Joi.object({
-    board_id: Joi.string().min(2).max(150).required(),
-  });
-
-  return joiSchema.validate(reqBody);
-};
-
 export const validateEditGroup = (reqBody: { name: string }) => {
   const joiSchema = Joi.object({
     name: Joi.string().min(1).max(150).required(),
