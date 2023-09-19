@@ -96,15 +96,6 @@ export const validatePassword = (reqBody: { oldPassword: string; password: strin
   });
   return joiSchema.validate(reqBody);
 };
-
-export const validateEmail = (reqBody: { email: string }) => {
-  let joiSchema = Joi.object({
-    email: Joi.string().min(2).max(150).email().required(),
-    // recaptchaToken: Joi.string().min(6).max(5000).required(),
-  });
-  return joiSchema.validate(reqBody);
-};
-
 export const validateOneTimeCode = (reqBody: { code: number }) => {
   let joiSchema = Joi.object({
     code: Joi.number().min(100000).max(999999).required(),
